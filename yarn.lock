@@ -2529,15 +2529,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"worker-template@workspace:packages/worker-template":
-  version: 0.0.0-use.local
-  resolution: "worker-template@workspace:packages/worker-template"
-  dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
-    wrangler: "npm:^3.65.0"
-  languageName: unknown
-  linkType: soft
-
 "workerd@npm:1.20240712.0":
   version: 1.20240712.0
   resolution: "workerd@npm:1.20240712.0"

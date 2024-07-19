@@ -18,7 +18,7 @@ export class Whisper {
       return transcription.text;
     } catch (error) {
       console.error("Failed to transcribe audio:", error);
-      return undefined;
+      throw error;
     }
   }
 }

@@ -21,7 +21,7 @@ export class Vision {
       return this.extractDescription(response);
     } catch (error) {
       console.error("Failed to describe the image:", error);
-      return "I'm not sure what's in the image.";
+      throw error;
     }
   }
 

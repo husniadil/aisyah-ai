@@ -1,19 +1,13 @@
-import { z } from "zod";
-import { Vision } from "./vision";
-
-const requestSchema = z.object({
-  imageUrl: z.string().url().describe("The URL of the image to describe."),
-});
+import { Vision, inputSchema } from "./vision";
 
 async function handlePostRequest(
   request: Request,
   env: Env,
 ): Promise<Response> {
   try {
-    const { imageUrl } = requestSchema.parse(await request.json());
-
+    const input = inputSchema.parse(await request.json());
     const vision = new Vision(env);
-    const description = await vision.describe(imageUrl);
+    const description = await vision.describe(input);
 
     return Response.json({ description });
   } catch (error) {

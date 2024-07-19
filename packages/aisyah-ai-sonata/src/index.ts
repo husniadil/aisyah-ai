@@ -1,26 +1,13 @@
-import { z } from "zod";
-import { Sonata } from "./sonata";
-
-const requestSchema = z.object({
-  text: z.string().describe("The text to be spoken"),
-  metadata: z.object({
-    chatId: z.string().describe("The chat ID"),
-    messageId: z.string().describe("The message ID"),
-  }),
-});
+import { Sonata, inputSchema } from "./sonata";
 
 async function handlePostRequest(
   request: Request,
   env: Env,
 ): Promise<Response> {
   try {
-    const {
-      text,
-      metadata: { chatId, messageId },
-    } = requestSchema.parse(await request.json());
-
+    const input = inputSchema.parse(await request.json());
     const sonata = new Sonata(env);
-    const audioUrl = await sonata.speak(text, { chatId, messageId });
+    const audioUrl = await sonata.speak(input);
 
     return Response.json({ audioUrl });
   } catch (error) {

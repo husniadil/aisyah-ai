@@ -1,19 +1,14 @@
 import { z } from "zod";
-import { Whisper } from "./whisper";
-
-const requestSchema = z.object({
-  audioUrl: z.string().url().describe("URL of the audio file to transcribe"),
-});
+import { Whisper, inputSchema } from "./whisper";
 
 async function handlePostRequest(
   request: Request,
   env: Env,
 ): Promise<Response> {
   try {
-    const { audioUrl } = requestSchema.parse(await request.json());
-
+    const input = inputSchema.parse(await request.json());
     const whisper = new Whisper(env);
-    const transcription = await whisper.listen(audioUrl);
+    const transcription = await whisper.listen(input);
 
     return Response.json({ transcription });
   } catch (error) {

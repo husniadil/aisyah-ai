@@ -1,8 +1,13 @@
 import { OpenAI } from "openai";
+import { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
 }
+
+export const inputSchema = z.object({
+  audioUrl: z.string().url().describe("URL of the audio file to transcribe"),
+});
 
 export class Whisper {
   private readonly openAI: OpenAI;
@@ -13,7 +18,8 @@ export class Whisper {
     });
   }
 
-  async listen(audioUrl: string) {
+  async listen(input: z.infer<typeof inputSchema>): Promise<string> {
+    const { audioUrl } = input;
     try {
       const transcription = await this.openAI.audio.transcriptions.create({
         file: await fetch(audioUrl),

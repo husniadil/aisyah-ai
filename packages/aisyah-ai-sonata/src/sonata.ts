@@ -4,12 +4,23 @@ import {
   createClient as createSupabaseClient,
 } from "@supabase/supabase-js";
 import { ElevenLabsClient } from "elevenlabs";
+import { z } from "zod";
 
 interface Env {
   ELEVENLABS_API_KEY: string;
   SUPABASE_URL: string;
   SUPABASE_KEY: string;
 }
+
+export const inputSchema = z.object({
+  text: z.string().describe("The text to convert to audio."),
+  metadata: z
+    .object({
+      chatId: z.string().describe("The chat ID."),
+      messageId: z.string().describe("The message ID."),
+    })
+    .describe("The metadata."),
+});
 
 export class Sonata {
   private readonly elevenLabsClient: ElevenLabsClient;
@@ -32,13 +43,12 @@ export class Sonata {
     );
   }
 
-  public async speak(
-    text: string,
-    metadata: { chatId: string; messageId: string },
-  ): Promise<string> {
+  public async speak(input: z.infer<typeof inputSchema>): Promise<string> {
+    const { text, metadata } = input;
+    const { chatId, messageId } = metadata;
     try {
       const audio = await this.generateAudio(text);
-      const uploadPath = `audio/${metadata.chatId}/${metadata.messageId}.mp3`;
+      const uploadPath = `audio/${chatId}/${messageId}.mp3`;
       const response = await this.uploadAudio(uploadPath, audio);
 
       return this.getPublicUrl(response.path);

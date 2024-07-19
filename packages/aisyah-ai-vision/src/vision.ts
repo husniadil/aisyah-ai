@@ -1,9 +1,14 @@
 import { OpenAI } from "openai";
 import type { ChatCompletion } from "openai/resources/chat/completions";
+import { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
 }
+
+export const inputSchema = z.object({
+  imageUrl: z.string().url().describe("The URL of the image to describe."),
+});
 
 export class Vision {
   private readonly openAI: OpenAI;
@@ -15,13 +20,14 @@ export class Vision {
     });
   }
 
-  public async describe(imageUrl: string): Promise<string> {
+  public async describe(input: z.infer<typeof inputSchema>): Promise<string> {
+    const { imageUrl } = input;
     try {
       const response = await this.generateDescription(imageUrl);
       return this.extractDescription(imageUrl, response);
     } catch (error) {
       console.error("Error generating description for image:", {
-        imageUrl,
+        imageUrl: imageUrl,
         error,
       });
       throw error;

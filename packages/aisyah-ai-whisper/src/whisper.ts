@@ -1,9 +1,13 @@
 import { OpenAI } from "openai";
 
+interface Env {
+  OPENAI_API_KEY: string;
+}
+
 export class Whisper {
   private readonly openAI: OpenAI;
 
-  constructor(env: { OPENAI_API_KEY: string }) {
+  constructor(env: Env) {
     this.openAI = new OpenAI({
       apiKey: env.OPENAI_API_KEY,
     });

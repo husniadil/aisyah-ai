@@ -1,0 +1,21 @@
+{
+  "name": "root",
+  "version": "0.0.1",
+  "packageManager": "yarn@4.3.1",
+  "private": true,
+  "workspaces": [
+    "packages/**/*"
+  ],
+  "scripts": {
+    "w": "node ./workspace-foreach.js",
+    "deploy": "yarn workspaces foreach --all run deploy",
+    "types": "yarn workspaces foreach --all run cf-typegen",
+    "format": "yarn biome check --write"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.8.3",
+    "@cloudflare/workers-types": "^4.20240712.0",
+    "lefthook": "^1.7.3",
+    "typescript": "^5.5.3"
+  }
+}

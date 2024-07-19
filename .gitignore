@@ -168,5 +168,6 @@ dist
 
 # wrangler project
 
+worker-configuration.d.ts
 .dev.vars
 .wrangler/

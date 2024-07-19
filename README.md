@@ -35,7 +35,6 @@ cloudflare-workers-monorepo/
         ├── .dev.vars
         ├── package.json
         ├── tsconfig.json
-        ├── worker-configuration.d.ts
         ├── wrangler.toml
         └── src
             └── index.ts
@@ -49,7 +48,6 @@ cloudflare-workers-monorepo/
 - **`packages/worker-template`**: This is an example of a worker.
   - **`.dev.vars`**: Store local development secrets.
   - **`src/index.ts`**: Example worker function that utilizes shared utilities.
-  - **`worker-configuration.d.ts`**: Generated environment bindings configuration.
   - **`package.json`**: Worker package management. Set your worker name here.
   - **`wrangler.toml`**: Cloudflare Worker configuration file.
 

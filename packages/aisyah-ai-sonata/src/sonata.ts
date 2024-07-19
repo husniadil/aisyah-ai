@@ -11,7 +11,7 @@ interface Env {
   SUPABASE_KEY: string;
 }
 
-export class Tts {
+export class Sonata {
   private readonly elevenLabsClient: ElevenLabsClient;
   private readonly supabaseClient: SupabaseClient;
   private readonly supabaseStorageKey = "telegram";

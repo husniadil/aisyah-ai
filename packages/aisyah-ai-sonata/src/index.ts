@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Tts } from "./tts";
+import { Sonata } from "./sonata";
 
 const requestSchema = z.object({
   text: z.string().describe("The text to be spoken"),
@@ -19,8 +19,8 @@ async function handlePostRequest(
       metadata: { chatId, messageId },
     } = requestSchema.parse(await request.json());
 
-    const tts = new Tts(env);
-    const audioUrl = await tts.speak(text, { chatId, messageId });
+    const sonata = new Sonata(env);
+    const audioUrl = await sonata.speak(text, { chatId, messageId });
 
     return Response.json({ audioUrl });
   } catch (error) {

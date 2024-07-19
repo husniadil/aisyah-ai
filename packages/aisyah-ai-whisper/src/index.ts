@@ -1,5 +1,5 @@
-import { Whisper } from "@packages/shared";
 import { z } from "zod";
+import { Whisper } from "./whisper";
 
 const requestSchema = z.object({
   audioUrl: z.string().url().describe("URL of the audio file to transcribe"),

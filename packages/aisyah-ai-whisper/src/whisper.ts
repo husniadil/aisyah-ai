@@ -1,7 +1,7 @@
 import { OpenAIClient } from "@langchain/openai";
 
 export class Whisper {
-  private openAIClient: OpenAIClient;
+  private readonly openAIClient: OpenAIClient;
 
   constructor(env: { OPENAI_API_KEY: string }) {
     this.openAIClient = new OpenAIClient({

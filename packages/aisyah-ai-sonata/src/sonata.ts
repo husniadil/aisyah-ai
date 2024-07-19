@@ -43,7 +43,11 @@ export class Sonata {
 
       return this.getPublicUrl(response.path);
     } catch (error) {
-      console.error(`Failed to generate audio: ${error}`);
+      console.error("Error generating audio for text with metadata:", {
+        text,
+        metadata,
+        error,
+      });
       throw error;
     }
   }
@@ -65,12 +69,15 @@ export class Sonata {
       .upload(path, audio);
 
     if (response.error) {
-      console.error(`Failed to upload audio: ${response.error.message}`);
+      console.error(
+        "Error uploading audio to Supabase storage:",
+        response.error,
+      );
       throw new Error(response.error.message);
     }
 
     if (!response.data) {
-      const message = "Failed to upload audio: no data returned";
+      const message = `No data returned after uploading audio to Supabase storage for path: ${path}`;
       console.error(message);
       throw new Error(message);
     }

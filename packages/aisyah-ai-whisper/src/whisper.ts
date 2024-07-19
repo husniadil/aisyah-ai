@@ -21,7 +21,10 @@ export class Whisper {
       });
       return transcription.text;
     } catch (error) {
-      console.error("Failed to transcribe audio:", error);
+      console.error("Error transcribing audio from URL:", {
+        audioUrl,
+        error,
+      });
       throw error;
     }
   }

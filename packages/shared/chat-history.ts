@@ -1,10 +1,15 @@
 import { Redis } from "@upstash/redis/cloudflare";
+import { z } from "zod";
 
-export type ChatHistory = {
-  senderName: string;
-  type: "human" | "ai";
-  message: string;
-};
+export const chatHistorySchema = z.object({
+  senderName: z.string().describe("The name of the sender"),
+  type: z.enum(["human", "ai"]).describe("The type of the sender"),
+  message: z.string().describe("The message sent by the sender"),
+});
+
+export const chatHistoryArraySchema = z.array(chatHistorySchema);
+
+export type ChatHistory = z.infer<typeof chatHistorySchema>;
 
 interface Env {
   UPSTASH_REDIS_REST_URL: string;

@@ -1,0 +1,23 @@
+{
+  "name": "aisyah-ai-agent",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "cf-typegen": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240712.0",
+    "wrangler": "^3.65.0"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.2.19",
+    "@langchain/core": "^0.2.17",
+    "@langchain/openai": "^0.2.4",
+    "langchain": "^0.2.10",
+    "openai": "^4.52.7",
+    "zod": "^3.23.8"
+  }
+}

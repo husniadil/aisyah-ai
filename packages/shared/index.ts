@@ -1,4 +1,9 @@
-import { type ChatHistory, UpstashRedisChatHistory } from "./chat-history";
+import {
+  type ChatHistory,
+  UpstashRedisChatHistory,
+  chatHistoryArraySchema,
+  chatHistorySchema,
+} from "./chat-history";
 import { UpstashRedisLock } from "./lock";
 import { UpstashRedisRateLimit } from "./rate-limit";
 import { sendMessage } from "./telegram";
@@ -8,6 +13,8 @@ export {
   getCurrentDateTime,
   sendMessage as sendTelegramMessage,
   type ChatHistory,
+  chatHistorySchema,
+  chatHistoryArraySchema,
   UpstashRedisChatHistory,
   UpstashRedisLock,
   UpstashRedisRateLimit,

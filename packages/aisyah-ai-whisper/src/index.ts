@@ -12,7 +12,7 @@ async function handlePostRequest(
   try {
     const { audioUrl } = requestSchema.parse(await request.json());
 
-    const whisper = new Whisper(env.OPENAI_API_KEY);
+    const whisper = new Whisper(env);
     const transcription = await whisper.listen(audioUrl);
 
     return Response.json({ transcription });

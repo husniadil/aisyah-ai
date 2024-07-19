@@ -529,6 +529,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@upstash/redis@npm:^1.33.0":
+  version: 1.33.0
+  resolution: "@upstash/redis@npm:1.33.0"
+  dependencies:
+    crypto-js: "npm:^4.2.0"
+  checksum: 10c0/ee68b9b4f11fa136f6e642e5421916c1e3e1dbae825067bdb1b918210a35dcb9be7c066d09d1dd9c3058a8bc2224b7cd8617ccd0f71d383a2bad8b6e41163fbc
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:^2.0.0":
   version: 2.0.0
   resolution: "abbrev@npm:2.0.0"
@@ -850,6 +859,13 @@ __metadata:
     shebang-command: "npm:^2.0.0"
     which: "npm:^2.0.1"
   checksum: 10c0/5738c312387081c98d69c98e105b6327b069197f864a60593245d64c8089c8a0a744e16349281210d56835bb9274130d825a78b2ad6853ca13cfbeffc0c31750
+  languageName: node
+  linkType: hard
+
+"crypto-js@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "crypto-js@npm:4.2.0"
+  checksum: 10c0/8fbdf9d56f47aea0794ab87b0eb9833baf80b01a7c5c1b0edc7faf25f662fb69ab18dc2199e2afcac54670ff0cd9607a9045a3f7a80336cccd18d77a55b9fdf0
   languageName: node
   linkType: hard
 
@@ -2183,6 +2199,8 @@ __metadata:
 "shared@workspace:packages/shared":
   version: 0.0.0-use.local
   resolution: "shared@workspace:packages/shared"
+  dependencies:
+    "@upstash/redis": "npm:^1.33.0"
   languageName: unknown
   linkType: soft
 

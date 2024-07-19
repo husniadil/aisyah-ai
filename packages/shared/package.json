@@ -1,4 +1,7 @@
 {
   "name": "shared",
-  "packageManager": "yarn@4.3.1"
+  "packageManager": "yarn@4.3.1",
+  "dependencies": {
+    "@upstash/redis": "^1.33.0"
+  }
 }

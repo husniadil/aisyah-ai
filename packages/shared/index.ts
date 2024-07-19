@@ -1,3 +1,4 @@
+import { sendMessage } from "./telegram";
 import { getCurrentDateTime } from "./time";
 
-export { getCurrentDateTime };
+export { getCurrentDateTime, sendMessage as sendTelegramMessage };

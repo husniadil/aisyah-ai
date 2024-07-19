@@ -11,32 +11,16 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { generateRandomNumber, generateRandomString } from "@packages/shared";
-
 export default {
   async fetch(
     request: Request<unknown, IncomingRequestCfProperties<unknown>>,
     env: Env,
     ctx: ExecutionContext,
   ): Promise<Response> {
-    const randomString = generateRandomString(10);
-    const randomNumber = generateRandomNumber(5, 10);
-
-    // await env.MY_KV_NAMESPACE.put("Hello", "World");
-
-    const response = {
-      message: "Hello World!",
-      randomString,
-      randomNumber,
-      env: {
-        ...env,
-        // MY_KV_NAMESPACE: await Promise.all(
-        // 	(await env.MY_KV_NAMESPACE.list()).keys.map(async (key) => ({
-        // 		[key.name]: await env.MY_KV_NAMESPACE.get(key.name),
-        // 	})),
-        // ),
+    return new Response("Hello worker!", {
+      headers: {
+        "content-type": "text/plain",
       },
-    };
-    return Response.json(response);
+    });
   },
 } satisfies ExportedHandler<Env>;

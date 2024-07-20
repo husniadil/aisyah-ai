@@ -94,12 +94,22 @@ export class Telegraph {
     this.bot.on("message", this.handleMessage.bind(this));
   }
 
+  private getSenderName(ctx: Context): string {
+    return (
+      (
+        ctx.message?.from?.first_name ||
+        ctx.message?.from?.last_name ||
+        ctx.message?.from?.username
+      )?.split(" ")[0] || "Unknown"
+    );
+  }
+
   private async askAgent(ctx: Context, question: string): Promise<string> {
     const input = {
       chatId: ctx.chat?.id.toString() ?? "",
       messageId: ctx.message?.message_id.toString() ?? "",
       senderId: ctx.from?.id.toString() ?? "",
-      senderName: ctx.from?.first_name ?? "",
+      senderName: this.getSenderName(ctx),
       message: question,
       chatHistory: [],
     };
@@ -121,12 +131,7 @@ export class Telegraph {
       chatId: ctx.chat?.id.toString() ?? "",
       messageId: ctx.message?.message_id.toString() ?? "",
       senderId: ctx.from?.id.toString() ?? "",
-      senderName:
-        (
-          ctx.message?.from?.first_name ||
-          ctx.message?.from?.last_name ||
-          ctx.message?.from?.username
-        )?.split(" ")[0] || "Unknown",
+      senderName: this.getSenderName(ctx),
       chatType: ctx.chat?.type ?? "private",
       message: input.message,
       replyType: input.replyType,

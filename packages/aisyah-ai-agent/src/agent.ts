@@ -8,7 +8,8 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
-import { getCurrentDateTime } from "@packages/shared";
+import { getCurrentDateTime } from "@packages/shared/time";
+import { VisionTool } from "@packages/shared/tools/vision";
 import type {
   IAgent,
   inputSchema,
@@ -16,6 +17,7 @@ import type {
 } from "@packages/shared/types/agent";
 import type { ChatHistory } from "@packages/shared/types/chat-history";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
+import type { StructuredTool } from "langchain/tools";
 import type { z } from "zod";
 
 interface Env {
@@ -28,12 +30,13 @@ interface Env {
   AGENT_LLM_TOP_P: number;
   AGENT_LLM_FREQUENCY_PENALTY: number;
   AGENT_LLM_PRESENCE_PENALTY: number;
+  AISYAH_AI_VISION: Fetcher;
 }
 
 export class Agent implements IAgent {
   private readonly name: string;
   private readonly llm: ChatOpenAI;
-  private readonly tools = [new Calculator()];
+  private readonly tools: StructuredTool[] = [];
   private readonly systemPrompt: string;
 
   constructor(env: Env, user: string) {
@@ -49,6 +52,7 @@ export class Agent implements IAgent {
     });
     this.name = env.AGENT_NAME;
     this.systemPrompt = env.AGENT_SYSTEM_PROMPT;
+    this.tools.push(new Calculator(), new VisionTool(env));
   }
 
   private createChatPromptTemplate(): ChatPromptTemplate {

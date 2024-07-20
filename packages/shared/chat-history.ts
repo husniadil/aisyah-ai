@@ -3,7 +3,6 @@ import type {
   IChatHistory,
 } from "@packages/shared/types/chat-history";
 import { Redis } from "@upstash/redis/cloudflare";
-import { z } from "zod";
 
 interface Env {
   UPSTASH_REDIS_REST_URL: string;

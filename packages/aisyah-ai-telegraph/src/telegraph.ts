@@ -22,7 +22,7 @@ interface Env {
   TELEGRAM_BOT_TOKEN: string;
 }
 
-export class BotAgent {
+export class Telegraph {
   private aisyahAiAgent: Fetcher;
   private readonly agentBindUrl =
     "https://aisyah-ai-agent.husni-adil-makmur.workers.dev";

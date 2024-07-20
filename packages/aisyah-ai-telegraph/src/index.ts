@@ -2,7 +2,7 @@ import { sendMessage } from "@packages/shared/telegram";
 import { outputSchema as agentOutputSchema } from "@packages/shared/types/agent";
 import { Bot, webhookCallback } from "grammy";
 import type { z } from "zod";
-import { BotAgent } from "./bot";
+import { Telegraph } from "./telegraph";
 
 const askAgent = async (
   env: Env,
@@ -68,29 +68,29 @@ export default {
       const bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
         botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
       });
-      const botAgent = new BotAgent(env);
-      bot.command("start", botAgent.handleStartCommand);
-      bot.command("description", botAgent.handleDescriptionCommand);
-      bot.command("forget", botAgent.handleForgetCommand);
-      bot.on("message:new_chat_members:me", botAgent.handleNewChatMembersMe);
-      bot.on("message:left_chat_member:me", botAgent.handleLeftChatMemberMe);
-      bot.on("message:new_chat_members:me", botAgent.handleNewChatMembers);
-      bot.on("message:new_chat_members", botAgent.handleNewChatMembers);
-      bot.on("message:left_chat_member", botAgent.handleLeftChatMember);
-      bot.on("message:new_chat_photo", botAgent.handleNewChatPhoto);
+      const telegraph = new Telegraph(env);
+      bot.command("start", telegraph.handleStartCommand);
+      bot.command("description", telegraph.handleDescriptionCommand);
+      bot.command("forget", telegraph.handleForgetCommand);
+      bot.on("message:new_chat_members:me", telegraph.handleNewChatMembersMe);
+      bot.on("message:left_chat_member:me", telegraph.handleLeftChatMemberMe);
+      bot.on("message:new_chat_members:me", telegraph.handleNewChatMembers);
+      bot.on("message:new_chat_members", telegraph.handleNewChatMembers);
+      bot.on("message:left_chat_member", telegraph.handleLeftChatMember);
+      bot.on("message:new_chat_photo", telegraph.handleNewChatPhoto);
       bot.on(
         "edited_message:delete_chat_photo",
-        botAgent.handleDeleteChatPhoto,
+        telegraph.handleDeleteChatPhoto,
       );
-      bot.on("message:delete_chat_photo", botAgent.handleDeleteChatPhoto);
-      bot.on("message:new_chat_title", botAgent.handleNewChatTitle);
-      bot.on("message:chat_background_set", botAgent.handleChatBackgroundSet);
+      bot.on("message:delete_chat_photo", telegraph.handleDeleteChatPhoto);
+      bot.on("message:new_chat_title", telegraph.handleNewChatTitle);
+      bot.on("message:chat_background_set", telegraph.handleChatBackgroundSet);
       bot.on(
         "edited_message:chat_background_set",
-        botAgent.handleChatBackgroundSet,
+        telegraph.handleChatBackgroundSet,
       );
-      bot.on("message:pinned_message", botAgent.handlePinnedMessage);
-      bot.on("message", botAgent.handleMessage);
+      bot.on("message:pinned_message", telegraph.handlePinnedMessage);
+      bot.on("message", telegraph.handleMessage);
       return webhookCallback(bot, "cloudflare-mod")(request);
     }
 
@@ -103,6 +103,6 @@ export default {
       return new Response("OK\n");
     }
 
-    return new Response("Not Found", { status: 200 });
+    return Response.json({ error: "Not Found" }, { status: 404 });
   },
 } satisfies ExportedHandler<Env>;

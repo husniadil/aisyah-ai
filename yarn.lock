@@ -1089,18 +1089,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"aisyah-ai-bot@workspace:packages/aisyah-ai-bot":
-  version: 0.0.0-use.local
-  resolution: "aisyah-ai-bot@workspace:packages/aisyah-ai-bot"
-  dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
-    grammy: "npm:^1.27.0"
-    openai: "npm:^4.52.7"
-    wrangler: "npm:^3.65.0"
-    zod: "npm:^3.23.8"
-  languageName: unknown
-  linkType: soft
-
 "aisyah-ai-explorer@workspace:packages/aisyah-ai-explorer":
   version: 0.0.0-use.local
   resolution: "aisyah-ai-explorer@workspace:packages/aisyah-ai-explorer"
@@ -1140,6 +1128,18 @@ __metadata:
   resolution: "aisyah-ai-storm@workspace:packages/aisyah-ai-storm"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
+    openai: "npm:^4.52.7"
+    wrangler: "npm:^3.65.0"
+    zod: "npm:^3.23.8"
+  languageName: unknown
+  linkType: soft
+
+"aisyah-ai-telegraph@workspace:packages/aisyah-ai-telegraph":
+  version: 0.0.0-use.local
+  resolution: "aisyah-ai-telegraph@workspace:packages/aisyah-ai-telegraph"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    grammy: "npm:^1.27.0"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"

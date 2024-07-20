@@ -1,16 +1,15 @@
-import { Agent, inputSchema } from "./agent";
+import { Reminder, reminderInputSchema } from "@packages/shared";
 
 async function handlePostRequest(
   request: Request,
   env: Env,
 ): Promise<Response> {
   try {
-    const input = inputSchema.parse(await request.json());
-    const { senderId } = input;
-    const agent = new Agent(env, senderId);
-    const response = await agent.chat(input);
+    const input = reminderInputSchema.parse(await request.json());
+    const reminder = new Reminder(env);
+    const transcription = await reminder.remind(input);
 
-    return Response.json({ response });
+    return Response.json({ transcription });
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }
@@ -25,14 +24,14 @@ export default {
     const { method, url } = request;
 
     if (method === "GET") {
-      return Response.json({ message: "Hi, I'm Aisyah!" });
+      return Response.json({ message: "Hi, I'm Reminder Worker!" });
     }
 
     if (method !== "POST") {
       return Response.json({ error: "Method Not Allowed" }, { status: 405 });
     }
 
-    if (new URL(url).pathname !== "/chat") {
+    if (new URL(url).pathname !== "/remind") {
       return Response.json({ error: "Not Found" }, { status: 404 });
     }
 

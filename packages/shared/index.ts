@@ -6,11 +6,15 @@ import {
 } from "./chat-history";
 import { UpstashRedisLock } from "./lock";
 import { UpstashRedisRateLimit } from "./rate-limit";
+import { Reminder, reminderInputSchema } from "./reminder";
 import { sendMessage } from "./telegram";
-import { getCurrentDateTime } from "./time";
+import { currentTimeInputSchema, getCurrentDateTime } from "./time";
 
 export {
   getCurrentDateTime,
+  currentTimeInputSchema,
+  Reminder,
+  reminderInputSchema,
   sendMessage as sendTelegramMessage,
   type ChatHistory,
   chatHistorySchema,

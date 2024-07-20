@@ -1,4 +1,17 @@
-export const getCurrentDateTime = (timeZone: string) => {
+import { z } from "zod";
+
+export const currentTimeInputSchema = z.object({
+  timeZone: z
+    .string()
+    .optional()
+    .default("Asia/Jakarta")
+    .describe("The time zone to get the current time, e.g. Asia/Jakarta"),
+});
+
+export const getCurrentDateTime = (
+  input: z.infer<typeof currentTimeInputSchema>,
+): string => {
+  const { timeZone } = input;
   const date = new Date();
   const time = date.toLocaleString(["en-US", "id-ID"], {
     timeZone: timeZone,

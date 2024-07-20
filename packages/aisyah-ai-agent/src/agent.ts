@@ -10,7 +10,6 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { chatHistoryArraySchema } from "@packages/shared";
 import { type ChatHistory, getCurrentDateTime } from "@packages/shared";
-import { CurrentTimeTool } from "@packages/shared/tools";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { z } from "zod";
 
@@ -38,7 +37,7 @@ export const inputSchema = z.object({
 export class Agent {
   private readonly name: string;
   private readonly llm: ChatOpenAI;
-  private readonly tools = [new Calculator(), new CurrentTimeTool()];
+  private readonly tools = [new Calculator()];
   private readonly systemPrompt: string;
 
   constructor(env: Env, user: string) {
@@ -69,7 +68,7 @@ export class Agent {
     return ChatPromptTemplate.fromMessages(messages);
   }
 
-  private async createAgentExecutor(prompt: string): Promise<AgentExecutor> {
+  private async createAgentExecutor(): Promise<AgentExecutor> {
     const agent = createToolCallingAgent({
       llm: this.llm,
       prompt: this.createChatPromptTemplate(),
@@ -109,12 +108,12 @@ export class Agent {
       `${senderName}: ${message}`,
     ];
 
-    const agentExecutor = await this.createAgentExecutor(message);
+    const agentExecutor = await this.createAgentExecutor();
     const response = await agentExecutor
       .invoke({
         system_message: new SystemMessage(this.systemPrompt),
         current_time: new SystemMessage(
-          `Context: current datetime: ${getCurrentDateTime("Asia/Jakarta")}`,
+          `Context: current datetime: ${getCurrentDateTime({ timeZone: "Asia/Jakarta" })}`,
         ),
         chat_id: new SystemMessage(`Context: chatId: ${chatId}`),
         message_id: new SystemMessage(`Context: messageId: ${messageId}`),

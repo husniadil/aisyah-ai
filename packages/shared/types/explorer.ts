@@ -55,6 +55,14 @@ export const getWebContentOutputSchema = z
   .optional()
   .describe("The content of the URL.");
 
+export const searchGoogleAndGetWebContentInputSchema = z.object({
+  query: z
+    .string()
+    .optional()
+    .describe("The query to search on Google if any."),
+  url: z.string().optional().describe("The URL to fetch the content if any."),
+});
+
 export interface IExplorer {
   searchGoogle(
     input: z.infer<typeof searchGoogleInputSchema>,

@@ -9,6 +9,7 @@ import {
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { getCurrentDateTime } from "@packages/shared/time";
+import { ExplorerTool } from "@packages/shared/tools/explorer";
 import { ReminderTool } from "@packages/shared/tools/reminder";
 import { SonataTool } from "@packages/shared/tools/sonata";
 import { StormTool } from "@packages/shared/tools/storm";
@@ -39,6 +40,7 @@ interface Env {
   AISYAH_AI_WHISPER: Fetcher;
   AISYAH_AI_REMINDER: Fetcher;
   AISYAH_AI_STORM: Fetcher;
+  AISYAH_AI_EXPLORER: Fetcher;
 }
 
 export class Agent implements IAgent {
@@ -67,6 +69,7 @@ export class Agent implements IAgent {
       new WhisperTool(env),
       new ReminderTool(env),
       new StormTool(env),
+      new ExplorerTool(env),
     );
   }
 

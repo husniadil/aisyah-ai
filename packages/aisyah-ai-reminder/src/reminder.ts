@@ -7,17 +7,12 @@ import type { z } from "zod";
 
 interface Env {
   REMINDERS_API_KEY: string;
+  REMINDERS_BASE_URL: string;
+  REMINDERS_APP_ID: number;
 }
 
 export class Reminder implements IReminder {
-  private readonly apiKey: string;
-  private readonly baseUrl = "https://reminders-api.com";
-  private readonly appID = 919;
-
-  private headers = (token: string): Record<string, string> => ({
-    "Content-Type": "application/x-www-form-urlencoded",
-    Authorization: `Bearer ${token}`,
-  });
+  private headers: () => Record<string, string>;
 
   private withData = (data: z.infer<typeof inputSchema>) => {
     const { chatId, title, date, time, timeZone } = data;
@@ -29,8 +24,15 @@ export class Reminder implements IReminder {
     });
   };
 
+  private createUrl: (input: z.infer<typeof inputSchema>) => string;
+
   constructor(env: Env) {
-    this.apiKey = env.REMINDERS_API_KEY;
+    this.createUrl = (input: z.infer<typeof inputSchema>) =>
+      `${env.REMINDERS_BASE_URL}/api/applications/${env.REMINDERS_APP_ID}/reminders/`;
+    this.headers = () => ({
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Bearer ${env.REMINDERS_API_KEY}`,
+    });
   }
 
   async remind(
@@ -41,11 +43,11 @@ export class Reminder implements IReminder {
     console.log(
       `set_reminder("${chatId}", "${title}", "${timeZone}", "${date}", "${time}")`,
     );
-    const url = `${this.baseUrl}/api/applications/${this.appID}/reminders/`;
+    const url = this.createUrl(input);
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: this.headers(this.apiKey),
+        headers: this.headers(),
         body: this.withData({ chatId, title, timeZone, date, time }),
         redirect: "follow",
       });

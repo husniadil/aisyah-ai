@@ -1,5 +1,5 @@
-import { inputSchema } from "@packages/shared/types/reminder";
-import { Reminder } from "./reminder";
+import { inputSchema } from "/Users/husni/github.com/husniadil/aisyah-ai/packages/shared/types/storm";
+import { Storm } from "./storm";
 
 async function handlePostRequest(
   request: Request,
@@ -7,10 +7,10 @@ async function handlePostRequest(
 ): Promise<Response> {
   try {
     const input = inputSchema.parse(await request.json());
-    const reminder = new Reminder(env);
-    const result = await reminder.remind(input);
+    const storm = new Storm(env);
+    const prediction = await storm.predict(input);
 
-    return Response.json({ result });
+    return Response.json({ prediction });
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }
@@ -25,14 +25,14 @@ export default {
     const { method, url } = request;
 
     if (method === "GET") {
-      return Response.json({ message: "Hi, I'm Reminder Worker!" });
+      return Response.json({ message: "Hi, I'm Storm Worker" });
     }
 
     if (method !== "POST") {
       return Response.json({ error: "Method Not Allowed" }, { status: 405 });
     }
 
-    if (new URL(url).pathname !== "/remind") {
+    if (new URL(url).pathname !== "/predict") {
       return Response.json({ error: "Not Found" }, { status: 404 });
     }
 

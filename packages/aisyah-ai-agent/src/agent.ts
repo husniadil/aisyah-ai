@@ -8,10 +8,15 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
-import { chatHistoryArraySchema } from "@packages/shared";
-import { type ChatHistory, getCurrentDateTime } from "@packages/shared";
+import { getCurrentDateTime } from "@packages/shared";
+import type {
+  IAgent,
+  inputSchema,
+  outputSchema,
+} from "@packages/shared/types/agent";
+import type { ChatHistory } from "@packages/shared/types/chat-history";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
-import { z } from "zod";
+import type { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
@@ -25,16 +30,7 @@ interface Env {
   AGENT_LLM_PRESENCE_PENALTY: number;
 }
 
-export const inputSchema = z.object({
-  chatId: z.string().describe("The ID of the chat"),
-  messageId: z.string().describe("The ID of the message"),
-  senderId: z.string().describe("The ID of the sender"),
-  senderName: z.string().describe("The name of the sender"),
-  message: z.string().describe("The message sent by the sender"),
-  chatHistory: chatHistoryArraySchema.describe("The chat history"),
-});
-
-export class Agent {
+export class Agent implements IAgent {
   private readonly name: string;
   private readonly llm: ChatOpenAI;
   private readonly tools = [new Calculator()];
@@ -78,7 +74,7 @@ export class Agent {
   }
 
   private async createChatHistoryMessages(
-    chatHistory: ChatHistory[],
+    chatHistory: ChatHistory,
   ): Promise<BaseMessage[]> {
     const messages: BaseMessage[] = [];
     for (const message of chatHistory) {
@@ -101,7 +97,9 @@ export class Agent {
       : output;
   }
 
-  public async chat(input: z.infer<typeof inputSchema>): Promise<string> {
+  public async chat(
+    input: z.infer<typeof inputSchema>,
+  ): Promise<z.infer<typeof outputSchema>> {
     const { chatId, messageId, senderName, message, chatHistory } = input;
     const userInput: BaseMessagePromptTemplateLike = [
       "human",

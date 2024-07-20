@@ -1,15 +1,8 @@
-import { z } from "zod";
-
-export const currentTimeInputSchema = z.object({
-  timeZone: z
-    .string()
-    .optional()
-    .default("Asia/Jakarta")
-    .describe("The time zone to get the current time, e.g. Asia/Jakarta"),
-});
+import type { inputSchema } from "@packages/shared/types/time";
+import type { z } from "zod";
 
 export const getCurrentDateTime = (
-  input: z.infer<typeof currentTimeInputSchema>,
+  input: z.infer<typeof inputSchema>,
 ): string => {
   const { timeZone } = input;
   const date = new Date();

@@ -1,4 +1,5 @@
-import { Sonata, inputSchema } from "./sonata";
+import { inputSchema } from "@packages/shared/types/sonata";
+import { Sonata } from "./sonata";
 
 async function handlePostRequest(
   request: Request,

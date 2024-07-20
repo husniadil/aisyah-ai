@@ -1,4 +1,5 @@
-import { Agent, inputSchema } from "./agent";
+import { Agent } from "@packages/aisyah-ai-agent/src/agent";
+import { inputSchema } from "@packages/shared/types/agent";
 
 async function handlePostRequest(
   request: Request,

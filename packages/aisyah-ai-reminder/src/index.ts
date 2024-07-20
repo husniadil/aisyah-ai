@@ -1,11 +1,12 @@
-import { Reminder, reminderInputSchema } from "@packages/shared";
+import { inputSchema } from "@packages/shared/types/reminder";
+import { Reminder } from "./reminder";
 
 async function handlePostRequest(
   request: Request,
   env: Env,
 ): Promise<Response> {
   try {
-    const input = reminderInputSchema.parse(await request.json());
+    const input = inputSchema.parse(await request.json());
     const reminder = new Reminder(env);
     const transcription = await reminder.remind(input);
 

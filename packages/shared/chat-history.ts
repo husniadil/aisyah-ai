@@ -1,15 +1,9 @@
+import type {
+  ChatHistory,
+  IChatHistory,
+} from "@packages/shared/types/chat-history";
 import { Redis } from "@upstash/redis/cloudflare";
 import { z } from "zod";
-
-export const chatHistorySchema = z.object({
-  senderName: z.string().describe("The name of the sender"),
-  type: z.enum(["human", "ai"]).describe("The type of the sender"),
-  message: z.string().describe("The message sent by the sender"),
-});
-
-export const chatHistoryArraySchema = z.array(chatHistorySchema);
-
-export type ChatHistory = z.infer<typeof chatHistorySchema>;
 
 interface Env {
   UPSTASH_REDIS_REST_URL: string;
@@ -17,7 +11,7 @@ interface Env {
   CHAT_HISTORY_LIMIT: number;
 }
 
-export class UpstashRedisChatHistory {
+export class UpstashRedisChatHistory implements IChatHistory {
   private readonly redis: Redis;
   private readonly keyPrefix = "chat_history";
   private readonly limit: number;
@@ -33,7 +27,7 @@ export class UpstashRedisChatHistory {
     this.limit = env.CHAT_HISTORY_LIMIT;
   }
 
-  public async append(key: string, ...messages: ChatHistory[]): Promise<void> {
+  public async append(key: string, ...messages: ChatHistory): Promise<void> {
     const fullKey = this.getFullKey(key);
     try {
       const data = await this.get(key);
@@ -44,10 +38,10 @@ export class UpstashRedisChatHistory {
     }
   }
 
-  public async get(key: string): Promise<ChatHistory[]> {
+  public async get(key: string): Promise<ChatHistory> {
     const fullKey = this.getFullKey(key);
     try {
-      return (await this.redis.get<ChatHistory[]>(fullKey)) || [];
+      return (await this.redis.get<ChatHistory>(fullKey)) || [];
     } catch (error) {
       console.warn(`Error getting messages from ${key}:`, error);
       return [];

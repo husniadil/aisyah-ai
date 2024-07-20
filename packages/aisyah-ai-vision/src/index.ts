@@ -1,4 +1,5 @@
-import { Vision, inputSchema } from "./vision";
+import { inputSchema } from "@packages/shared/types/vision";
+import { Vision } from "./vision";
 
 async function handlePostRequest(
   request: Request,

@@ -1,4 +1,5 @@
-import { Whisper, inputSchema } from "./whisper";
+import { inputSchema } from "@packages/shared/types/whisper";
+import { Whisper } from "./whisper";
 
 async function handlePostRequest(
   request: Request,

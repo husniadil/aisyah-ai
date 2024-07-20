@@ -1,16 +1,17 @@
+import type {
+  IVision,
+  inputSchema,
+  outputSchema,
+} from "@packages/shared/types/vision";
 import { OpenAI } from "openai";
 import type { ChatCompletion } from "openai/resources/chat/completions";
-import { z } from "zod";
+import type { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
 }
 
-export const inputSchema = z.object({
-  imageUrl: z.string().url().describe("The URL of the image to describe."),
-});
-
-export class Vision {
+export class Vision implements IVision {
   private readonly openAI: OpenAI;
   private readonly chatModel = "gpt-4o-mini";
 
@@ -20,7 +21,9 @@ export class Vision {
     });
   }
 
-  public async describe(input: z.infer<typeof inputSchema>): Promise<string> {
+  public async describe(
+    input: z.infer<typeof inputSchema>,
+  ): Promise<z.infer<typeof outputSchema>> {
     const { imageUrl } = input;
     try {
       const response = await this.generateDescription(imageUrl);

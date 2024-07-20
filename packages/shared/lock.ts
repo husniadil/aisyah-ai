@@ -1,3 +1,4 @@
+import type { ILock } from "@packages/shared/types/lock";
 import { Redis } from "@upstash/redis/cloudflare";
 
 interface Env {
@@ -5,7 +6,7 @@ interface Env {
   UPSTASH_REDIS_REST_TOKEN: string;
 }
 
-export class UpstashRedisLock {
+export class UpstashRedisLock implements ILock {
   private readonly redis: Redis;
   private readonly lockKeyPrefix = "lock";
   private readonly lockTTL: number;

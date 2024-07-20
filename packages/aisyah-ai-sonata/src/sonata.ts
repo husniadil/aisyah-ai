@@ -1,10 +1,15 @@
 import type * as stream from "node:stream";
+import type {
+  ISonata,
+  inputSchema,
+  outputSchema,
+} from "@packages/shared/types/sonata";
 import {
   type SupabaseClient,
   createClient as createSupabaseClient,
 } from "@supabase/supabase-js";
 import { ElevenLabsClient } from "elevenlabs";
-import { z } from "zod";
+import type { z } from "zod";
 
 interface Env {
   ELEVENLABS_API_KEY: string;
@@ -12,17 +17,7 @@ interface Env {
   SUPABASE_KEY: string;
 }
 
-export const inputSchema = z.object({
-  text: z.string().describe("The text to convert to audio."),
-  metadata: z
-    .object({
-      chatId: z.string().describe("The chat ID."),
-      messageId: z.string().describe("The message ID."),
-    })
-    .describe("The metadata."),
-});
-
-export class Sonata {
+export class Sonata implements ISonata {
   private readonly elevenLabsClient: ElevenLabsClient;
   private readonly supabaseClient: SupabaseClient;
   private readonly supabaseStorageKey = "telegram";
@@ -43,7 +38,9 @@ export class Sonata {
     );
   }
 
-  public async speak(input: z.infer<typeof inputSchema>): Promise<string> {
+  public async speak(
+    input: z.infer<typeof inputSchema>,
+  ): Promise<z.infer<typeof outputSchema>> {
     const { text, metadata } = input;
     const { chatId, messageId } = metadata;
     try {

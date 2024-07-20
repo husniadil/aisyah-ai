@@ -9,7 +9,10 @@ import {
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { getCurrentDateTime } from "@packages/shared/time";
+import { ReminderTool } from "@packages/shared/tools/reminder";
+import { SonataTool } from "@packages/shared/tools/sonata";
 import { VisionTool } from "@packages/shared/tools/vision";
+import { WhisperTool } from "@packages/shared/tools/whisper";
 import type {
   IAgent,
   inputSchema,
@@ -31,6 +34,9 @@ interface Env {
   AGENT_LLM_FREQUENCY_PENALTY: number;
   AGENT_LLM_PRESENCE_PENALTY: number;
   AISYAH_AI_VISION: Fetcher;
+  AISYAH_AI_SONATA: Fetcher;
+  AISYAH_AI_WHISPER: Fetcher;
+  AISYAH_AI_REMINDER: Fetcher;
 }
 
 export class Agent implements IAgent {
@@ -52,7 +58,13 @@ export class Agent implements IAgent {
     });
     this.name = env.AGENT_NAME;
     this.systemPrompt = env.AGENT_SYSTEM_PROMPT;
-    this.tools.push(new Calculator(), new VisionTool(env));
+    this.tools.push(
+      new Calculator(),
+      new VisionTool(env),
+      new SonataTool(env),
+      new WhisperTool(env),
+      new ReminderTool(env),
+    );
   }
 
   private createChatPromptTemplate(): ChatPromptTemplate {

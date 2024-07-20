@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { Whisper, inputSchema } from "./whisper";
 
 async function handlePostRequest(

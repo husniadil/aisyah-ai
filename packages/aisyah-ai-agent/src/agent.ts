@@ -97,7 +97,7 @@ export class Agent implements IAgent {
       : output;
   }
 
-  public async chat(
+  async chat(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
     const { chatId, messageId, senderName, message, chatHistory } = input;

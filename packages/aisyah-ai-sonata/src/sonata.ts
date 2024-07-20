@@ -38,7 +38,7 @@ export class Sonata implements ISonata {
     );
   }
 
-  public async speak(
+  async speak(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
     const { text, metadata } = input;

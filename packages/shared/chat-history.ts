@@ -27,7 +27,7 @@ export class UpstashRedisChatHistory implements IChatHistory {
     this.limit = env.CHAT_HISTORY_LIMIT;
   }
 
-  public async append(key: string, ...messages: ChatHistory): Promise<void> {
+  async append(key: string, ...messages: ChatHistory): Promise<void> {
     const fullKey = this.getFullKey(key);
     try {
       const data = await this.get(key);
@@ -38,7 +38,7 @@ export class UpstashRedisChatHistory implements IChatHistory {
     }
   }
 
-  public async get(key: string): Promise<ChatHistory> {
+  async get(key: string): Promise<ChatHistory> {
     const fullKey = this.getFullKey(key);
     try {
       return (await this.redis.get<ChatHistory>(fullKey)) || [];
@@ -48,7 +48,7 @@ export class UpstashRedisChatHistory implements IChatHistory {
     }
   }
 
-  public async clear(key: string): Promise<void> {
+  async clear(key: string): Promise<void> {
     const fullKey = this.getFullKey(key);
     try {
       await this.redis.del(fullKey);

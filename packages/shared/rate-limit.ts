@@ -27,7 +27,7 @@ export class UpstashRedisRateLimit implements IRateLimit {
     this.limit = limit;
   }
 
-  public async isRateLimited(
+  async isRateLimited(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
     const { key } = input;

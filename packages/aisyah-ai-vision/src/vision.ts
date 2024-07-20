@@ -21,7 +21,7 @@ export class Vision implements IVision {
     });
   }
 
-  public async describe(
+  async describe(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
     const { imageUrl } = input;

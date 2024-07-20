@@ -19,7 +19,7 @@ export class UpstashRedisLock implements ILock {
     this.lockTTL = lockTTL;
   }
 
-  public async acquire(lockKey: string): Promise<boolean> {
+  async acquire(lockKey: string): Promise<boolean> {
     const fullKey = this.getFullKey(lockKey);
     while (true) {
       const acquired = await this.redis.set(fullKey, "locked", {
@@ -31,7 +31,7 @@ export class UpstashRedisLock implements ILock {
     }
   }
 
-  public async release(lockKey: string): Promise<void> {
+  async release(lockKey: string): Promise<void> {
     const fullKey = this.getFullKey(lockKey);
     await this.redis.del(fullKey);
   }

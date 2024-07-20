@@ -1082,6 +1082,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"aisyah-ai-explorer@workspace:packages/aisyah-ai-explorer":
+  version: 0.0.0-use.local
+  resolution: "aisyah-ai-explorer@workspace:packages/aisyah-ai-explorer"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    openai: "npm:^4.52.7"
+    wrangler: "npm:^3.65.0"
+    zod: "npm:^3.23.8"
+  languageName: unknown
+  linkType: soft
+
 "aisyah-ai-reminder@workspace:packages/aisyah-ai-reminder":
   version: 0.0.0-use.local
   resolution: "aisyah-ai-reminder@workspace:packages/aisyah-ai-reminder"

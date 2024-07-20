@@ -1,4 +1,4 @@
-import { inputArraySchema as chatHistoryArraySchema } from "@packages/shared/types/chat-history";
+import { chatHistoryArraySchema } from "@packages/shared/types/chat-history";
 import { z } from "zod";
 
 export const inputSchema = z.object({

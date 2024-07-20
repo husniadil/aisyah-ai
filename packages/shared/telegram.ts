@@ -1,8 +1,9 @@
+import type { z } from "zod";
+import type { inputSchema, outputSchema } from "./types/telegram";
+
 export const sendMessage = async (
-  botToken: string,
-  chatId: string,
-  message: string,
-) => {
-  const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+  input: z.infer<typeof inputSchema>,
+): Promise<z.infer<typeof outputSchema>> => {
+  const url = `https://api.telegram.org/bot${input.botToken}/sendMessage?chat_id=${input.chatId}&text=${encodeURIComponent(input.text)}`;
   await fetch(url);
 };

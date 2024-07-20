@@ -1,8 +1,11 @@
 import type {
-  ChatHistory,
   IChatHistory,
+  chatHistoryArraySchema,
+  keyInputSchema,
+  zVoidOutputSchema,
 } from "@packages/shared/types/chat-history";
 import { Redis } from "@upstash/redis/cloudflare";
+import type { z } from "zod";
 
 interface Env {
   UPSTASH_REDIS_REST_URL: string;
@@ -26,7 +29,10 @@ export class UpstashRedisChatHistory implements IChatHistory {
     this.limit = env.CHAT_HISTORY_LIMIT;
   }
 
-  async append(key: string, ...messages: ChatHistory): Promise<void> {
+  async append(
+    key: z.infer<typeof keyInputSchema>,
+    ...messages: z.infer<typeof chatHistoryArraySchema>
+  ): Promise<z.infer<typeof zVoidOutputSchema>> {
     const fullKey = this.getFullKey(key);
     try {
       const data = await this.get(key);
@@ -37,17 +43,25 @@ export class UpstashRedisChatHistory implements IChatHistory {
     }
   }
 
-  async get(key: string): Promise<ChatHistory> {
+  async get(
+    key: z.infer<typeof keyInputSchema>,
+  ): Promise<z.infer<typeof chatHistoryArraySchema>> {
     const fullKey = this.getFullKey(key);
     try {
-      return (await this.redis.get<ChatHistory>(fullKey)) || [];
+      return (
+        (await this.redis.get<z.infer<typeof chatHistoryArraySchema>>(
+          fullKey,
+        )) || []
+      );
     } catch (error) {
       console.warn(`Error getting messages from ${key}:`, error);
       return [];
     }
   }
 
-  async clear(key: string): Promise<void> {
+  async clear(
+    key: z.infer<typeof keyInputSchema>,
+  ): Promise<z.infer<typeof zVoidOutputSchema>> {
     const fullKey = this.getFullKey(key);
     try {
       await this.redis.del(fullKey);

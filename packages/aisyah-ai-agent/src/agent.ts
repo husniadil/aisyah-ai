@@ -20,7 +20,7 @@ import type {
   inputSchema,
   outputSchema,
 } from "@packages/shared/types/agent";
-import type { ChatHistory } from "@packages/shared/types/chat-history";
+import type { chatHistoryArraySchema } from "@packages/shared/types/chat-history";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import type { StructuredTool } from "langchain/tools";
 import type { z } from "zod";
@@ -96,7 +96,7 @@ export class Agent implements IAgent {
   }
 
   private async createChatHistoryMessages(
-    chatHistory: ChatHistory,
+    chatHistory: z.infer<typeof chatHistoryArraySchema>,
   ): Promise<BaseMessage[]> {
     const messages: BaseMessage[] = [];
     for (const message of chatHistory) {

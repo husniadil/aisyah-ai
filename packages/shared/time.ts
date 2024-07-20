@@ -1,9 +1,9 @@
-import type { inputSchema } from "@packages/shared/types/time";
+import type { inputSchema, outputSchema } from "@packages/shared/types/time";
 import type { z } from "zod";
 
 export const getCurrentDateTime = (
   input: z.infer<typeof inputSchema>,
-): string => {
+): z.infer<typeof outputSchema> => {
   const { timeZone } = input;
   const date = new Date();
   const time = date.toLocaleString(["en-US", "id-ID"], {

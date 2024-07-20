@@ -9,9 +9,3 @@ export const inputSchema = z.object({
 });
 
 export const outputSchema = z.string().describe("The current date and time.");
-
-export interface ITime {
-  getCurrentDateTime(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>>;
-}

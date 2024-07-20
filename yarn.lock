@@ -3273,6 +3273,7 @@ __metadata:
   resolution: "shared@workspace:packages/shared"
   dependencies:
     "@upstash/redis": "npm:^1.33.0"
+    langchain: "npm:^0.2.10"
     zod: "npm:^3.23.8"
   languageName: unknown
   linkType: soft

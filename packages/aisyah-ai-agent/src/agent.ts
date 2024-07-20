@@ -10,6 +10,7 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { chatHistoryArraySchema } from "@packages/shared";
 import { type ChatHistory, getCurrentDateTime } from "@packages/shared";
+import { CurrentTimeTool } from "@packages/shared/tools";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { z } from "zod";
 
@@ -37,7 +38,7 @@ export const inputSchema = z.object({
 export class Agent {
   private readonly name: string;
   private readonly llm: ChatOpenAI;
-  private readonly tools = [new Calculator()];
+  private readonly tools = [new Calculator(), new CurrentTimeTool()];
   private readonly systemPrompt: string;
 
   constructor(env: Env, user: string) {

@@ -4,10 +4,7 @@ import { Bot, webhookCallback } from "grammy";
 import type { z } from "zod";
 import { Telegraph } from "./telegraph";
 
-const askAgent = async (
-  env: Env,
-  question: string,
-): Promise<z.infer<typeof agentOutputSchema>> => {
+const askAgent = async (env: Env, question: string): Promise<string> => {
   const input = {
     chatId: "",
     messageId: "",
@@ -17,7 +14,7 @@ const askAgent = async (
     chatHistory: [],
   };
   const response = await env.AISYAH_AI_AGENT.fetch(
-    "https://aisyah-ai-agent.husni-adil-makmur.workers.dev",
+    "https://aisyah-ai-agent.husni-adil-makmur.workers.dev/chat",
     {
       method: "POST",
       body: JSON.stringify(input),
@@ -26,7 +23,7 @@ const askAgent = async (
       },
     },
   );
-  return agentOutputSchema.parse(await response.json());
+  return agentOutputSchema.parse(await response.json()).response;
 };
 
 const handleRemindersApi = async (
@@ -64,34 +61,37 @@ export default {
     ctx: ExecutionContext,
   ): Promise<Response> {
     const path = new URL(request.url).pathname;
+
     if (path === "/webhooks/telegram") {
-      const bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
-        botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
-      });
       const telegraph = new Telegraph(env);
-      bot.command("start", telegraph.handleStartCommand);
-      bot.command("description", telegraph.handleDescriptionCommand);
-      bot.command("forget", telegraph.handleForgetCommand);
-      bot.on("message:new_chat_members:me", telegraph.handleNewChatMembersMe);
-      bot.on("message:left_chat_member:me", telegraph.handleLeftChatMemberMe);
-      bot.on("message:new_chat_members:me", telegraph.handleNewChatMembers);
-      bot.on("message:new_chat_members", telegraph.handleNewChatMembers);
-      bot.on("message:left_chat_member", telegraph.handleLeftChatMember);
-      bot.on("message:new_chat_photo", telegraph.handleNewChatPhoto);
-      bot.on(
-        "edited_message:delete_chat_photo",
-        telegraph.handleDeleteChatPhoto,
-      );
-      bot.on("message:delete_chat_photo", telegraph.handleDeleteChatPhoto);
-      bot.on("message:new_chat_title", telegraph.handleNewChatTitle);
-      bot.on("message:chat_background_set", telegraph.handleChatBackgroundSet);
-      bot.on(
-        "edited_message:chat_background_set",
-        telegraph.handleChatBackgroundSet,
-      );
-      bot.on("message:pinned_message", telegraph.handlePinnedMessage);
-      bot.on("message", telegraph.handleMessage);
-      return webhookCallback(bot, "cloudflare-mod")(request);
+      return telegraph.start(request);
+      // bot.command("start", telegraph.handleStartCommand);
+      // bot.command("description", telegraph.handleDescriptionCommand);
+      // bot.command("forget", telegraph.handleForgetCommand);
+      // bot.on("message:new_chat_members:me", telegraph.handleNewChatMembersMe);
+      // bot.on("message:left_chat_member:me", telegraph.handleLeftChatMemberMe);
+      // bot.on("message:new_chat_members:me", telegraph.handleNewChatMembers);
+      // bot.on("message:new_chat_members", telegraph.handleNewChatMembers);
+      // bot.on("message:left_chat_member", telegraph.handleLeftChatMember);
+      // bot.on("message:new_chat_photo", telegraph.handleNewChatPhoto);
+      // bot.on(
+      //   "edited_message:delete_chat_photo",
+      //   telegraph.handleDeleteChatPhoto,
+      // );
+      // bot.on("message:delete_chat_photo", telegraph.handleDeleteChatPhoto);
+      // bot.on("message:new_chat_title", telegraph.handleNewChatTitle);
+      // bot.on("message:chat_background_set", telegraph.handleChatBackgroundSet);
+      // bot.on(
+      //   "edited_message:chat_background_set",
+      //   telegraph.handleChatBackgroundSet,
+      // );
+      // bot.on("message:pinned_message", telegraph.handlePinnedMessage);
+      // bot.on("message", telegraph.handleMessage);
+    }
+
+    if (path === "/webhooks/telegram/setup") {
+      const url = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/setWebhook?url=${request.url.replace("/setup", "")}`;
+      return await fetch(url);
     }
 
     if (path === "/webhooks/reminders-api") {

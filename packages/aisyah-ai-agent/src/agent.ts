@@ -142,6 +142,6 @@ export class Agent implements IAgent {
       })
       .then((response) => this.formatOutput(response.output));
 
-    return response;
+    return { response };
   }
 }

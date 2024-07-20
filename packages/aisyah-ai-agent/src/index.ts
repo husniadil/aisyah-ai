@@ -11,7 +11,7 @@ async function handlePostRequest(
     const agent = new Agent(env, senderId);
     const response = await agent.chat(input);
 
-    return Response.json({ response });
+    return Response.json(response);
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }

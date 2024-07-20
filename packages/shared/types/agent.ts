@@ -10,7 +10,9 @@ export const inputSchema = z.object({
   chatHistory: chatHistoryArraySchema.describe("The chat history"),
 });
 
-export const outputSchema = z.string().describe("The response message.");
+export const outputSchema = z.object({
+  response: z.string().describe("The response from the agent"),
+});
 
 export interface IAgent {
   chat(

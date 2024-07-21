@@ -1,4 +1,6 @@
 import { UpstashRedisChatHistory } from "@packages/shared/chat-history";
+import { UpstashRedisLock } from "@packages/shared/lock";
+import { UpstashRedisRateLimit } from "@packages/shared/rate-limit";
 import {
   extractAudioLink,
   getFile,
@@ -6,10 +8,7 @@ import {
 } from "@packages/shared/telegram";
 import { getCurrentDateTime } from "@packages/shared/time";
 import { outputSchema as agentOutputSchema } from "@packages/shared/types/agent";
-import {
-  type chatHistoryArraySchema,
-  chatHistorySchema,
-} from "@packages/shared/types/chat-history";
+import type { chatHistoryArraySchema } from "@packages/shared/types/chat-history";
 import { Bot, type Context, webhookCallback } from "grammy";
 import { z } from "zod";
 
@@ -47,6 +46,34 @@ export class Telegraph {
 
   private bot: Bot;
   private chatHistory: UpstashRedisChatHistory;
+  private rateLimit: UpstashRedisRateLimit;
+  private lock: UpstashRedisLock;
+
+  constructor(env: Env) {
+    this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
+      botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
+    });
+    this.aisyahAiAgent = env.AISYAH_AI_AGENT;
+    this.chatHistory = new UpstashRedisChatHistory(env);
+    this.lock = new UpstashRedisLock(env);
+    this.rateLimit = new UpstashRedisRateLimit(env);
+
+    this.initializeCommands();
+    this.initializeMessageHandlers();
+
+    this.getFileUrl = getFileUrl({
+      telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
+      botToken: env.TELEGRAM_BOT_TOKEN,
+    });
+    this.getFile = getFile({
+      telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
+      botToken: env.TELEGRAM_BOT_TOKEN,
+    });
+  }
+
+  start(request: Request<unknown, IncomingRequestCfProperties<unknown>>) {
+    return webhookCallback(this.bot, "cloudflare-mod")(request);
+  }
 
   private getFileUrl: (filePath?: string) => string | undefined;
 
@@ -72,36 +99,21 @@ export class Telegraph {
     return !isFromBot && (isPrivateChat || isReplyToBot || mentionsBot);
   }
 
-  constructor(env: Env) {
-    this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
-      botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
-    });
-    this.aisyahAiAgent = env.AISYAH_AI_AGENT;
-    this.chatHistory = new UpstashRedisChatHistory(env);
-
-    this.initializeCommands();
-    this.initializeMessageHandlers();
-
-    this.getFileUrl = getFileUrl({
-      telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
-      botToken: env.TELEGRAM_BOT_TOKEN,
-    });
-    this.getFile = getFile({
-      telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
-      botToken: env.TELEGRAM_BOT_TOKEN,
-    });
-  }
-
-  start(request: Request<unknown, IncomingRequestCfProperties<unknown>>) {
-    return webhookCallback(this.bot, "cloudflare-mod")(request);
-  }
-
   async handleCommand(ctx: Context, command: string): Promise<void> {
-    const output = this.composeMessage(ctx, {
-      message: await this.askAgent(ctx, command),
-      replyType: "text",
-    });
-    await this.reply(ctx, output);
+    try {
+      await this.handleRateLimit(ctx);
+      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
+      const output = this.composeMessage(ctx, {
+        message: await this.askAgent(ctx, command),
+        replyType: "text",
+      });
+      await this.reply(ctx, output);
+    } catch (error) {
+      console.log(error);
+      await ctx.reply(`${(error as Error).message}`);
+    } finally {
+      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
+    }
   }
 
   private initializeCommands() {
@@ -131,6 +143,8 @@ export class Telegraph {
   async handleTextMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      await this.handleRateLimit(ctx);
+      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
       const chatHistory = await this.saveUserMessage(
         ctx.message?.chat?.id.toString(),
         {
@@ -163,13 +177,17 @@ export class Telegraph {
       await this.reply(ctx, output);
     } catch (error) {
       console.log(error);
-      await ctx.reply(`${error}`);
+      await ctx.reply(`${(error as Error).message}`);
+    } finally {
+      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
   }
 
   async handleVoiceMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      await this.handleRateLimit(ctx);
+      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
       const chatHistory = await this.saveUserMessage(
         ctx.message?.chat?.id.toString(),
         {
@@ -209,13 +227,17 @@ export class Telegraph {
       await this.reply(ctx, output);
     } catch (error) {
       console.log(error);
-      await ctx.reply(`${error}`);
+      await ctx.reply(`${(error as Error).message}`);
+    } finally {
+      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
   }
 
   async handleAudioMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      await this.handleRateLimit(ctx);
+      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
       const chatHistory = await this.saveUserMessage(
         ctx.message?.chat?.id.toString(),
         {
@@ -253,13 +275,17 @@ export class Telegraph {
       await this.reply(ctx, output);
     } catch (error) {
       console.log(error);
-      await ctx.reply(`${error}`);
+      await ctx.reply(`${(error as Error).message}`);
+    } finally {
+      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
   }
 
   async handlePhotoMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      await this.handleRateLimit(ctx);
+      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
       const chatHistory = await this.saveUserMessage(
         ctx.message?.chat?.id.toString(),
         {
@@ -297,7 +323,9 @@ export class Telegraph {
       await this.reply(ctx, output);
     } catch (error) {
       console.log(error);
-      await ctx.reply(`${error}`);
+      await ctx.reply(`${(error as Error).message}`);
+    } finally {
+      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
   }
 
@@ -384,5 +412,13 @@ export class Telegraph {
       return [];
     }
     return this.chatHistory.append(chatId, ...userMessages);
+  }
+
+  private async handleRateLimit(ctx: Context) {
+    if (
+      await this.rateLimit.isRateLimited(ctx.message?.from?.id.toString() ?? "")
+    ) {
+      throw new Error("Hari ini kamu uda banyak chat sama aku, besok lagi ya!");
+    }
   }
 }

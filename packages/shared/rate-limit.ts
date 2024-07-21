@@ -1,6 +1,6 @@
 import type {
   IRateLimit,
-  inputSchema,
+  keyInputSchema,
   outputSchema,
 } from "@packages/shared/types/rate-limit";
 import { Redis } from "@upstash/redis/cloudflare";
@@ -28,9 +28,8 @@ export class UpstashRedisRateLimit implements IRateLimit {
   }
 
   async isRateLimited(
-    input: z.infer<typeof inputSchema>,
+    key: z.infer<typeof keyInputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
-    const { key } = input;
     const fullKey = this.getFullKey(key);
     try {
       const value = await this.redis.get<number>(fullKey);

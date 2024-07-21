@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-export const inputSchema = z.object({
-  key: z.string().describe("The key to check the rate limit."),
-});
+export const keyInputSchema = z.string().describe("The key to check.");
 
 export const outputSchema = z
   .boolean()
@@ -10,6 +8,6 @@ export const outputSchema = z
 
 export interface IRateLimit {
   isRateLimited(
-    input: z.infer<typeof inputSchema>,
+    key: z.infer<typeof keyInputSchema>,
   ): Promise<z.infer<typeof outputSchema>>;
 }

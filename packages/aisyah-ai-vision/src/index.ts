@@ -9,8 +9,7 @@ async function handlePostRequest(
     const input = inputSchema.parse(await request.json());
     const vision = new Vision(env);
     const description = await vision.describe(input);
-
-    return Response.json({ description });
+    return Response.json(description);
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }

@@ -28,7 +28,7 @@ export class Whisper implements IWhisper {
         file: await fetch(audioUrl),
         model: "whisper-1",
       });
-      return transcription.text;
+      return transcription;
     } catch (error) {
       console.error("Error transcribing audio from URL:", {
         audioUrl,

@@ -27,7 +27,9 @@ export class Vision implements IVision {
     const { imageUrl } = input;
     try {
       const response = await this.generateDescription(imageUrl);
-      return this.extractDescription(imageUrl, response);
+      return {
+        description: this.extractDescription(imageUrl, response),
+      };
     } catch (error) {
       console.error("Error generating description for image:", {
         imageUrl: imageUrl,

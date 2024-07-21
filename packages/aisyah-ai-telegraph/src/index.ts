@@ -45,7 +45,9 @@ const handleRemindersApi = async (
     const question = `Tolong buatkan himbauan tentang ini sekarang, respon dengan bahasa gaul: ${topic}`;
     const response = await askAgent(env, question);
     return await sendMessage({
+      telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
       botToken: env.TELEGRAM_BOT_TOKEN,
+    })({
       chatId,
       text: response,
     });

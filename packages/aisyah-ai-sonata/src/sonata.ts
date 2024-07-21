@@ -31,7 +31,7 @@ export class Sonata implements ISonata {
     audio: stream.Readable,
   ) => Promise<{ path: string }>;
 
-  private getPublicUrl: (path: string) => string;
+  private getPublicUrl: (path: string) => Promise<string | undefined>;
 
   constructor(env: Env) {
     this.elevenLabsClient = new ElevenLabsClient({
@@ -74,28 +74,40 @@ export class Sonata implements ISonata {
       return response.data;
     };
 
-    this.getPublicUrl = (path: string): string => {
-      const {
-        data: { publicUrl },
-      } = this.supabaseClient.storage
+    this.getPublicUrl = async (path: string): Promise<string | undefined> => {
+      return await this.supabaseClient.storage
         .from(env.SUPABASE_STORAGE_KEY)
-        .getPublicUrl(path);
-
-      return publicUrl;
+        .createSignedUrl(path, 60, {
+          download: "voice.mp3",
+        })
+        .then((response) => response.data?.signedUrl);
     };
   }
 
   async speak(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
+    // TODO: remove this
+    input.metadata.chatId = "1234";
+    input.metadata.messageId = "1234";
     const { text, metadata } = input;
     const { chatId, messageId } = metadata;
     try {
-      const audio = await this.generateAudio(text);
       const uploadPath = `audio/${chatId}/${messageId}.mp3`;
-      const response = await this.uploadAudio(uploadPath, audio);
+      const audioUrl = await this.getPublicUrl(uploadPath).catch(
+        (_error) => undefined,
+      );
+      if (audioUrl) {
+        return {
+          audioUrl,
+        };
+      }
 
-      return this.getPublicUrl(response.path);
+      const audio = await this.generateAudio(text);
+      const response = await this.uploadAudio(uploadPath, audio);
+      return {
+        audioUrl: await this.getPublicUrl(response.path),
+      };
     } catch (error) {
       console.error("Error generating audio for text with metadata:", {
         text,

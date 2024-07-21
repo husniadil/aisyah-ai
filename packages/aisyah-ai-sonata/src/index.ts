@@ -9,8 +9,7 @@ async function handlePostRequest(
     const input = inputSchema.parse(await request.json());
     const sonata = new Sonata(env);
     const audioUrl = await sonata.speak(input);
-
-    return Response.json({ audioUrl });
+    return Response.json(audioUrl);
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }

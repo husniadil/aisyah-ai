@@ -9,8 +9,7 @@ async function handlePostRequest(
     const input = inputSchema.parse(await request.json());
     const whisper = new Whisper(env);
     const transcription = await whisper.listen(input);
-
-    return Response.json({ transcription });
+    return Response.json(transcription);
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }

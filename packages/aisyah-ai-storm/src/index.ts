@@ -9,8 +9,7 @@ async function handlePostRequest(
     const input = inputSchema.parse(await request.json());
     const storm = new Storm(env);
     const prediction = await storm.predict(input);
-
-    return Response.json({ prediction });
+    return Response.json(prediction);
   } catch (error) {
     return Response.json({ error: `${error}` }, { status: 400 });
   }

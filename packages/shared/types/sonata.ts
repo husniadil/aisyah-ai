@@ -10,10 +10,9 @@ export const inputSchema = z.object({
     .describe("The metadata."),
 });
 
-export const outputSchema = z
-  .string()
-  .url()
-  .describe("The public URL of the audio.");
+export const outputSchema = z.object({
+  audioUrl: z.string().url().optional().describe("The URL of the audio."),
+});
 
 export interface ISonata {
   speak(

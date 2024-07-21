@@ -184,7 +184,6 @@ export class Telegraph {
       if (!(await this.shouldBotRespond(ctx))) {
         return;
       }
-      await ctx.replyWithChatAction("typing");
       const response = await this.askAgent(
         ctx,
         userMessage,

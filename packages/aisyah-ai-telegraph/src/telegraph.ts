@@ -5,10 +5,22 @@ import {
   extractAudioLink,
   getFile,
   getFileUrl,
+  isContainingAudioLink,
 } from "@packages/shared/telegram";
 import { getCurrentDateTime } from "@packages/shared/time";
-import { outputSchema as agentOutputSchema } from "@packages/shared/types/agent";
+import {
+  type inputSchema as agentInputSchema,
+  outputSchema as agentOutputSchema,
+} from "@packages/shared/types/agent";
 import type { chatHistoryArraySchema } from "@packages/shared/types/chat-history";
+import {
+  type inputSchema as sonataInputSchema,
+  outputSchema as sonataOutputSchema,
+} from "@packages/shared/types/sonata";
+import {
+  type inputSchema as whisperInputSchema,
+  outputSchema as whisperOutputSchema,
+} from "@packages/shared/types/whisper";
 import { Bot, type Context, webhookCallback } from "grammy";
 import { z } from "zod";
 
@@ -31,6 +43,8 @@ const outputSchema = z.object({
 
 interface Env {
   AISYAH_AI_AGENT: Fetcher;
+  AISYAH_AI_WHISPER: Fetcher;
+  AISYAH_AI_SONATA: Fetcher;
   TELEGRAM_API_BASE_URL: string;
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_BOT_INFO: string;
@@ -40,9 +54,15 @@ interface Env {
 }
 
 export class Telegraph {
-  private aisyahAiAgent: Fetcher;
+  private agent: Fetcher;
+  private whisper: Fetcher;
+  private sonata: Fetcher;
   private readonly agentBindUrl =
     "https://aisyah-ai-agent.husni-adil-makmur.workers.dev/chat";
+  private readonly whisperBindUrl =
+    "https://aisyah-ai-whisper.husni-adil-makmur.workers.dev/listen";
+  private readonly sonataBindUrl =
+    "https://aisyah-ai-sonata.husni-adil-makmur.workers.dev/speak";
 
   private bot: Bot;
   private chatHistory: UpstashRedisChatHistory;
@@ -54,7 +74,10 @@ export class Telegraph {
     this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
       botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
     });
-    this.aisyahAiAgent = env.AISYAH_AI_AGENT;
+    this.agent = env.AISYAH_AI_AGENT;
+    this.whisper = env.AISYAH_AI_WHISPER;
+    this.sonata = env.AISYAH_AI_SONATA;
+
     this.chatHistory = new UpstashRedisChatHistory(env);
     this.lock = new UpstashRedisLock(env);
     this.rateLimit = new UpstashRedisRateLimit(env);
@@ -105,7 +128,7 @@ export class Telegraph {
     try {
       await this.handleRateLimit(ctx);
       await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
-      const output = this.composeMessage(ctx, {
+      const output = this.composeOutputMessage(ctx, {
         message: await this.askAgent(ctx, command),
         replyType: "text",
       });
@@ -147,10 +170,12 @@ export class Telegraph {
       console.log(ctx.message);
       await this.handleRateLimit(ctx);
       await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
+
+      const userMessage = await this.constructUserMessage(ctx);
       const chatHistory = await this.saveUserMessage(
         ctx.message?.chat?.id.toString(),
         {
-          message: ctx.message?.text ?? "",
+          message: userMessage,
           type: "human",
           senderName: this.getSenderName(ctx),
           timestamp: getCurrentDateTime(),
@@ -162,162 +187,54 @@ export class Telegraph {
       await ctx.replyWithChatAction("typing");
       const response = await this.askAgent(
         ctx,
-        ctx.message?.text ?? "",
+        userMessage,
         chatHistory.slice(0, -1),
       );
-      const audioLink = extractAudioLink(response);
-      const output = this.composeMessage(ctx, {
-        message: audioLink ?? response,
-        replyType: audioLink ? "voice" : "text",
-      });
-      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
-        message: output.message,
-        type: "ai",
-        senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime(),
-      });
-      await this.reply(ctx, output);
-    } catch (error) {
-      console.log(error);
-      await ctx.reply(`${(error as Error).message}`);
-    } finally {
-      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
-    }
-  }
 
-  async handleVoiceMessage(ctx: Context): Promise<void> {
-    try {
-      console.log(ctx.message);
-      await this.handleRateLimit(ctx);
-      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
-      const chatHistory = await this.saveUserMessage(
-        ctx.message?.chat?.id.toString(),
-        {
-          message: ctx.message?.text ?? "",
-          type: "human",
-          senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime(),
-        },
-      );
-      if (!(await this.shouldBotRespond(ctx))) {
-        return;
+      let output: z.infer<typeof outputSchema>;
+      if (ctx.message?.voice) {
+        try {
+          const sonataResponse = await this.askSonata(ctx, response);
+          output = this.composeOutputMessage(ctx, {
+            message: sonataResponse ?? response,
+            replyType: sonataResponse ? "voice" : "text",
+          });
+        } catch (error) {
+          output = this.composeOutputMessage(ctx, {
+            message: response,
+            replyType: "text",
+          });
+        }
+      } else if (isContainingAudioLink(response)) {
+        const audioLink = extractAudioLink(response);
+        if (audioLink) {
+          try {
+            const sonataResponse = await this.askSonata(ctx, audioLink);
+            output = this.composeOutputMessage(ctx, {
+              message: sonataResponse ?? response,
+              replyType: sonataResponse ? "voice" : "text",
+            });
+          } catch (error) {
+            output = this.composeOutputMessage(ctx, {
+              message: response,
+              replyType: "text",
+            });
+          }
+        } else {
+          output = this.composeOutputMessage(ctx, {
+            message: response,
+            replyType: "text",
+          });
+        }
+      } else {
+        output = this.composeOutputMessage(ctx, {
+          message: response,
+          replyType: "text",
+        });
       }
-      await ctx.replyWithChatAction("record_voice");
-      const fileId = ctx.message?.voice?.file_id;
-      const file = await this.getFile(fileId);
-      const voiceUrl = this.getFileUrl(file?.result.file_path);
-      const caption = ctx.message?.caption;
-      const command =
-        "Ask Sonata then just directly response with the url of the audio you got from Sonata.";
-      const question = [caption, voiceUrl, command].filter(Boolean).join("\n");
-      const agentResponse = await this.askAgent(
-        ctx,
-        question,
-        chatHistory.slice(0, -1),
-      );
-      const audioLink = extractAudioLink(agentResponse);
-      const output = this.composeMessage(ctx, {
-        message: audioLink ?? agentResponse,
-        replyType: audioLink ? "voice" : "text",
-      });
-      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
-        message: output.message,
-        type: "ai",
-        senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime(),
-      });
-      await this.reply(ctx, output);
-    } catch (error) {
-      console.log(error);
-      await ctx.reply(`${(error as Error).message}`);
-    } finally {
-      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
-    }
-  }
 
-  async handleAudioMessage(ctx: Context): Promise<void> {
-    try {
-      console.log(ctx.message);
-      await this.handleRateLimit(ctx);
-      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
-      const chatHistory = await this.saveUserMessage(
-        ctx.message?.chat?.id.toString(),
-        {
-          message: ctx.message?.text ?? "",
-          type: "human",
-          senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime(),
-        },
-      );
-      if (!(await this.shouldBotRespond(ctx))) {
-        return;
-      }
-      await ctx.replyWithChatAction("typing");
-      const fileId = ctx.message?.voice?.file_id;
-      const file = await this.getFile(fileId);
-      const audioUrl = this.getFileUrl(file?.result.file_path);
-      const caption = ctx.message?.caption;
-      const question = [caption, audioUrl].filter(Boolean).join("\n");
-      const agentResponse = await this.askAgent(
-        ctx,
-        question,
-        chatHistory.slice(0, -1),
-      );
-      const audioLink = extractAudioLink(agentResponse);
-      const output = this.composeMessage(ctx, {
-        message: audioLink ?? agentResponse,
-        replyType: audioLink ? "voice" : "text",
-      });
       await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
-        message: output.message,
-        type: "ai",
-        senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime(),
-      });
-      await this.reply(ctx, output);
-    } catch (error) {
-      console.log(error);
-      await ctx.reply(`${(error as Error).message}`);
-    } finally {
-      await this.lock.release(ctx.message?.from?.id.toString() ?? "");
-    }
-  }
-
-  async handlePhotoMessage(ctx: Context): Promise<void> {
-    try {
-      console.log(ctx.message);
-      await this.handleRateLimit(ctx);
-      await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
-      const chatHistory = await this.saveUserMessage(
-        ctx.message?.chat?.id.toString(),
-        {
-          message: ctx.message?.text ?? "",
-          type: "human",
-          senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime(),
-        },
-      );
-      if (!(await this.shouldBotRespond(ctx))) {
-        return;
-      }
-      await ctx.replyWithChatAction("typing");
-      const fileId = ctx.message?.photo?.[0]?.file_id;
-      const file = await this.getFile(fileId);
-      const photoLink = this.getFileUrl(file?.result.file_path);
-      const caption = ctx.message?.caption;
-      const question = [caption, photoLink].filter(Boolean).join("\n");
-      const agentResponse = await this.askAgent(
-        ctx,
-        question,
-        chatHistory.slice(0, -1),
-      );
-      const audioLink = extractAudioLink(agentResponse);
-      const output = this.composeMessage(ctx, {
-        message: audioLink ?? agentResponse,
-        replyType: audioLink ? "voice" : "text",
-      });
-      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
-        message: output.message,
+        message: response,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
         timestamp: getCurrentDateTime(),
@@ -332,17 +249,8 @@ export class Telegraph {
   }
 
   private initializeMessageHandlers() {
-    this.bot.on("message:text", async (ctx) =>
+    this.bot.on("message", async (ctx) =>
       this.ctx.waitUntil(this.handleTextMessage(ctx)),
-    );
-    this.bot.on("message:voice", async (ctx) =>
-      this.ctx.waitUntil(this.handleVoiceMessage(ctx)),
-    );
-    this.bot.on("message:photo", async (ctx) =>
-      this.ctx.waitUntil(this.handlePhotoMessage(ctx)),
-    );
-    this.bot.on("message:audio", async (ctx) =>
-      this.ctx.waitUntil(this.handleAudioMessage(ctx)),
     );
   }
 
@@ -361,7 +269,7 @@ export class Telegraph {
     question: string,
     chatHistory: z.infer<typeof chatHistoryArraySchema> = [],
   ) {
-    const input = {
+    const input: z.infer<typeof agentInputSchema> = {
       chatId: ctx.message?.chat?.id.toString() ?? "",
       messageId: ctx.message?.message_id.toString() ?? "",
       senderId: ctx.message?.from?.id.toString() ?? "",
@@ -369,7 +277,7 @@ export class Telegraph {
       message: question,
       chatHistory: chatHistory,
     };
-    const response = await this.aisyahAiAgent.fetch(this.agentBindUrl, {
+    const response = await this.agent.fetch(this.agentBindUrl, {
       method: "POST",
       body: JSON.stringify(input),
       headers: {
@@ -379,7 +287,39 @@ export class Telegraph {
     return agentOutputSchema.parse(await response.json()).response;
   }
 
-  private composeMessage(
+  private async askWhisper(question: string) {
+    const input: z.infer<typeof whisperInputSchema> = {
+      audioUrl: question,
+    };
+    const response = await this.whisper.fetch(this.whisperBindUrl, {
+      method: "POST",
+      body: JSON.stringify(input),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return whisperOutputSchema.parse(await response.json()).text;
+  }
+
+  private async askSonata(ctx: Context, question: string) {
+    const input: z.infer<typeof sonataInputSchema> = {
+      text: question,
+      metadata: {
+        chatId: ctx.message?.chat?.id.toString() ?? "",
+        messageId: ctx.message?.message_id.toString() ?? "",
+      },
+    };
+    const response = await this.sonata.fetch(this.sonataBindUrl, {
+      method: "POST",
+      body: JSON.stringify(input),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return sonataOutputSchema.parse(await response.json()).audioUrl;
+  }
+
+  private composeOutputMessage(
     ctx: Context,
     input: z.infer<typeof composeMessageInputSchema>,
   ): z.infer<typeof outputSchema> {
@@ -430,5 +370,86 @@ export class Telegraph {
     ) {
       throw new Error("Hari ini kamu uda banyak chat sama aku, besok lagi ya!");
     }
+  }
+
+  private async extractFileUrls(ctx: Context) {
+    const files: string[] = [];
+    if (ctx.message?.photo) {
+      files.push(...ctx.message.photo.map((photo) => photo.file_id));
+    }
+    if (ctx.message?.reply_to_message?.photo) {
+      files.push(
+        ...ctx.message.reply_to_message.photo.map((photo) => photo.file_id),
+      );
+    }
+    if (ctx.message?.voice) {
+      files.push(ctx.message.voice.file_id);
+    }
+    if (ctx.message?.reply_to_message?.voice) {
+      files.push(ctx.message.reply_to_message.voice.file_id);
+    }
+    if (ctx.message?.audio) {
+      files.push(ctx.message.audio.file_id);
+    }
+    if (ctx.message?.reply_to_message?.audio) {
+      files.push(ctx.message.reply_to_message.audio.file_id);
+    }
+    const fileUrlPromises = files.map(async (fileId) => {
+      const file = await this.getFile(fileId);
+      return this.getFileUrl(file?.result.file_path);
+    });
+
+    const fileUrls = await Promise.all(fileUrlPromises);
+    return fileUrls.filter((url) => url !== undefined);
+  }
+
+  private async constructUserMessage(ctx: Context) {
+    const fileUrls = await this.extractFileUrls(ctx);
+    if (ctx.message?.voice || ctx.message?.reply_to_message?.voice) {
+      const voiceUrl = fileUrls.pop();
+      try {
+        return voiceUrl ? await this.askWhisper(voiceUrl) : "";
+      } catch (error) {
+        return "Error: I can't listen to this voice message.";
+      }
+    }
+    if (
+      ctx.message?.audio ||
+      ctx.message?.photo ||
+      ctx.message?.reply_to_message?.photo ||
+      ctx.message?.reply_to_message?.audio
+    ) {
+      const url = fileUrls.pop();
+      return [ctx.message?.caption, url].filter(Boolean).join("\n");
+    }
+    if (ctx.message?.sticker) {
+      return ctx.message?.sticker.emoji || "";
+    }
+    if (ctx.message?.location) {
+      return `Location: ${ctx.message?.location.latitude}, ${ctx.message?.location.longitude}`;
+    }
+    if (ctx.message?.venue) {
+      return `Venue: ${ctx.message?.venue.title}`;
+    }
+    if (ctx.message?.contact) {
+      return `Contact: ${ctx.message?.contact.phone_number}`;
+    }
+    if (ctx.message?.video) {
+      return ctx.message?.caption || "";
+    }
+    if (ctx.message?.animation) {
+      return ctx.message?.caption || "";
+    }
+    if (ctx.message?.poll) {
+      const question = ctx.message?.poll.question || "";
+      const options =
+        ctx.message?.poll.options
+          ?.map((option) => `[${option.text}]`)
+          .join(", ") || "";
+      return ["Polling", `Question: ${question}`, `Options: ${options}`]
+        .filter(Boolean)
+        .join("\n");
+    }
+    return ctx.message?.text || "";
   }
 }

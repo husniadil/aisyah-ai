@@ -128,13 +128,19 @@ export class Telegraph {
       ctx.message?.from?.id.toString() ?? "",
     );
     const hasQuestionMark = ctx.message?.text?.includes("?");
+    const isMentioningOtherUsers =
+      ctx.message?.entities?.some((entity) => entity.type === "mention") &&
+      !mentionsBot;
+
+    console.log("mentionsBot", mentionsBot);
+    console.log("isMentioningOtherUsers", isMentioningOtherUsers);
 
     return (
       !isFromBot &&
       (isPrivateChat ||
         isReplyToBot ||
         mentionsBot ||
-        (isRecentlyInteracted && hasQuestionMark))
+        (isRecentlyInteracted && hasQuestionMark && !isMentioningOtherUsers))
     );
   }
 

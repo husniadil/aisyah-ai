@@ -102,11 +102,16 @@ export class Agent implements IAgent {
     for (const message of chatHistory) {
       const template =
         message.type === "ai"
-          ? AIMessagePromptTemplate.fromTemplate("{sender}: {message}")
-          : HumanMessagePromptTemplate.fromTemplate("{sender}: {message}");
+          ? AIMessagePromptTemplate.fromTemplate(
+              "[{timestamp}] {sender}: {message}",
+            )
+          : HumanMessagePromptTemplate.fromTemplate(
+              "[{timestamp}] {sender}: {message}",
+            );
       const formattedMessage = await template.format({
         sender: message.senderName,
         message: message.message,
+        timestamp: message.timestamp,
       });
       messages.push(formattedMessage);
     }

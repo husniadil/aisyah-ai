@@ -4,6 +4,7 @@ export const chatHistorySchema = z.object({
   senderName: z.string().describe("The name of the sender"),
   type: z.enum(["human", "ai"]).describe("The type of the sender"),
   message: z.string().describe("The message sent by the sender"),
+  timestamp: z.string().describe("The timestamp of the message"),
 });
 
 export const chatHistoryArraySchema = z.array(chatHistorySchema);

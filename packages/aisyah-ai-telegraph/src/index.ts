@@ -39,7 +39,7 @@ const handleRemindersApi = async (
     if (!chatId || !topic) {
       return new Response("Invalid reminder format.\n");
     }
-    const question = `Tolong buatkan himbauan tentang ini sekarang, respon dengan bahasa gaul: ${topic}`;
+    const question = `Please remind me in your language about this one: ${topic}`;
     const response = await askAgent(env, {
       chatId,
       messageId: "0",

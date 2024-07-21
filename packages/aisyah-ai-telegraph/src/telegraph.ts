@@ -296,6 +296,7 @@ export class Telegraph {
     this.bot.on("message:text", this.handleTextMessage.bind(this));
     this.bot.on("message:voice", this.handleVoiceMessage.bind(this));
     this.bot.on("message:photo", this.handlePhotoMessage.bind(this));
+    this.bot.on("message:audio", this.handleAudioMessage.bind(this));
   }
 
   private getSenderName(ctx: Context): string {

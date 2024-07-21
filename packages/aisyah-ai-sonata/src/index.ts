@@ -11,6 +11,7 @@ async function handlePostRequest(
     const audioUrl = await sonata.speak(input);
     return Response.json(audioUrl);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

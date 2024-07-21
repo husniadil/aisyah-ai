@@ -10,9 +10,9 @@ async function handlePostRequest(
     const { senderId } = input;
     const agent = new Agent(env, senderId);
     const response = await agent.chat(input);
-
     return Response.json(response);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

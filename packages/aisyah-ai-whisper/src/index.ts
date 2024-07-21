@@ -11,6 +11,7 @@ async function handlePostRequest(
     const transcription = await whisper.listen(input);
     return Response.json(transcription);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

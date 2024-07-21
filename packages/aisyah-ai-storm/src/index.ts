@@ -11,6 +11,7 @@ async function handlePostRequest(
     const prediction = await storm.predict(input);
     return Response.json(prediction);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

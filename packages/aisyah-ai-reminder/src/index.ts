@@ -9,9 +9,9 @@ async function handlePostRequest(
     const input = inputSchema.parse(await request.json());
     const reminder = new Reminder(env);
     const result = await reminder.remind(input);
-
-    return Response.json({ result });
+    return Response.json(result);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

@@ -14,6 +14,7 @@ async function handleGoogleSearchRequest(
     const searchResult = await explorer.searchGoogle(input);
     return Response.json(searchResult);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }
@@ -28,6 +29,7 @@ async function handleGetWebContentRequest(
     const searchResult = await explorer.getWebContent(input);
     return Response.json(searchResult);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

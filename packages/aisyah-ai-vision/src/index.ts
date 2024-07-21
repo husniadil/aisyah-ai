@@ -11,6 +11,7 @@ async function handlePostRequest(
     const description = await vision.describe(input);
     return Response.json(description);
   } catch (error) {
+    console.error(error);
     return Response.json({ error: `${error}` }, { status: 400 });
   }
 }

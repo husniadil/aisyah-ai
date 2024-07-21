@@ -56,7 +56,7 @@ export class Reminder implements IReminder {
         console.error(message);
         throw new Error(message);
       }
-      return "Reminder set successfully!";
+      return await response.json();
     } catch (error) {
       console.error("Error setting reminder:", error);
       throw error;

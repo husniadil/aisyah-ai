@@ -87,9 +87,6 @@ export class Sonata implements ISonata {
   async speak(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
-    // TODO: remove this
-    input.metadata.chatId = "1234";
-    input.metadata.messageId = "1234";
     const { text, metadata } = input;
     const { chatId, messageId } = metadata;
     try {

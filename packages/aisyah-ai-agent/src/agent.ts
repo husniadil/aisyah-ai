@@ -121,10 +121,8 @@ export class Agent implements IAgent {
   }
 
   private formatOutput(output: string): string {
-    const regex =
-      /^\[\d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2}\](?: [^:]+:)? (.*)$/;
-    const match = output.match(regex);
-    return match ? match[1] : output;
+    const regex = /(?:\[\d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2}\] )?(?:\w+: )?/;
+    return output.replace(regex, "");
   }
 
   async chat(

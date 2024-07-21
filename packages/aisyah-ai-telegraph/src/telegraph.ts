@@ -51,6 +51,7 @@ interface Env {
   UPSTASH_REDIS_REST_URL: string;
   UPSTASH_REDIS_REST_TOKEN: string;
   CHAT_HISTORY_LIMIT: number;
+  RECENT_INTERACTIONS: KVNamespace;
 }
 
 export class Telegraph {
@@ -69,6 +70,7 @@ export class Telegraph {
   private rateLimit: UpstashRedisRateLimit;
   private lock: UpstashRedisLock;
   private ctx: ExecutionContext;
+  private recentInteractions: KVNamespace;
 
   constructor(ctx: ExecutionContext, env: Env) {
     this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
@@ -78,6 +80,7 @@ export class Telegraph {
     this.whisper = env.AISYAH_AI_WHISPER;
     this.sonata = env.AISYAH_AI_SONATA;
 
+    this.recentInteractions = env.RECENT_INTERACTIONS;
     this.chatHistory = new UpstashRedisChatHistory(env);
     this.lock = new UpstashRedisLock(env);
     this.rateLimit = new UpstashRedisRateLimit(env);
@@ -120,8 +123,19 @@ export class Telegraph {
     const isReplyToBot =
       ctx.message?.reply_to_message?.from?.id === this.bot.botInfo.id;
     const mentionsBot = this.messageMentionsBot(ctx);
+    const isRecentlyInteracted = await this.isRecentlyInteracted(
+      ctx.message?.chat?.id.toString() ?? "",
+      ctx.message?.from?.id.toString() ?? "",
+    );
+    const hasQuestionMark = ctx.message?.text?.includes("?");
 
-    return !isFromBot && (isPrivateChat || isReplyToBot || mentionsBot);
+    return (
+      !isFromBot &&
+      (isPrivateChat ||
+        isReplyToBot ||
+        mentionsBot ||
+        (isRecentlyInteracted && hasQuestionMark))
+    );
   }
 
   async handleCommand(ctx: Context, command: string): Promise<void> {
@@ -182,6 +196,10 @@ export class Telegraph {
       if (!(await this.shouldBotRespond(ctx))) {
         return;
       }
+      await this.trackInteractions(
+        ctx.message?.chat?.id.toString() ?? "",
+        ctx.message?.from?.id.toString() ?? "",
+      );
       const response = await this.askAgent(
         ctx,
         userMessage,
@@ -448,5 +466,18 @@ export class Telegraph {
         .join("\n");
     }
     return ctx.message?.text || "";
+  }
+
+  async trackInteractions(chatId: string, senderId: string): Promise<void> {
+    const key = `${chatId}:${senderId}`;
+    await this.recentInteractions.put(key, "", { expirationTtl: 5 * 60 });
+  }
+
+  async isRecentlyInteracted(
+    chatId: string,
+    senderId: string,
+  ): Promise<boolean> {
+    const key = `${chatId}:${senderId}`;
+    return this.recentInteractions.get(key) !== null;
   }
 }

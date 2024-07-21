@@ -158,10 +158,7 @@ export class Telegraph {
       if (ctx.message?.chat?.id) {
         this.chatHistory.clear(ctx.message?.chat?.id.toString());
       }
-      return await this.handleCommand(
-        ctx,
-        "Write this: ----- CHAT HISTORY HAS BEEN DELETED ----- in your language.",
-      );
+      return await ctx.reply("----- 👌 💬 ❌ 👍 -----");
     });
   }
 

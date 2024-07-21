@@ -13,6 +13,7 @@ import { ExplorerTool } from "@packages/shared/tools/explorer";
 import { ReminderTool } from "@packages/shared/tools/reminder";
 import { SonataTool } from "@packages/shared/tools/sonata";
 import { StormTool } from "@packages/shared/tools/storm";
+import { CurrentTimeTool } from "@packages/shared/tools/time";
 import { VisionTool } from "@packages/shared/tools/vision";
 import { WhisperTool } from "@packages/shared/tools/whisper";
 import type {
@@ -64,6 +65,7 @@ export class Agent implements IAgent {
     this.systemPrompt = env.AGENT_SYSTEM_PROMPT;
     this.tools.push(
       new Calculator(),
+      new CurrentTimeTool(),
       new VisionTool(env),
       new SonataTool(env),
       new WhisperTool(env),
@@ -137,7 +139,7 @@ export class Agent implements IAgent {
       .invoke({
         system_message: new SystemMessage(this.systemPrompt),
         current_time: new SystemMessage(
-          `Context:\ncurrent date-time in Asia/Jakarta: ${getCurrentDateTime("Asia/Jakarta")}`,
+          `Context: current date-time: ${getCurrentDateTime("Asia/Jakarta")}`,
         ),
         chat_id: new SystemMessage(`Context: chatId: ${chatId}`),
         message_id: new SystemMessage(`Context: messageId: ${messageId}`),

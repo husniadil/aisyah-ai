@@ -3,8 +3,8 @@ import type { z } from "zod";
 
 export const getCurrentDateTime = (
   timeZone: z.infer<typeof inputSchema>,
-): string => {
-  const date = new Date().toLocaleString("en-GB", {
+): z.infer<typeof outputSchema> => {
+  const date = new Date().toLocaleString("id-ID", {
     timeZone,
     year: "numeric",
     month: "2-digit",

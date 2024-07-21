@@ -138,7 +138,7 @@ export class Agent implements IAgent {
       .invoke({
         system_message: new SystemMessage(this.systemPrompt),
         current_time: new SystemMessage(
-          `Context: current datetime: ${getCurrentDateTime("Asia/Jakarta")}`,
+          `Context:\ncurrent datetime: ${getCurrentDateTime()}\ncurrent timezone: Asia/Jakarta`,
         ),
         chat_id: new SystemMessage(`Context: chatId: ${chatId}`),
         message_id: new SystemMessage(`Context: messageId: ${messageId}`),

@@ -65,30 +65,8 @@ export default {
     const path = new URL(request.url).pathname;
 
     if (path === "/webhooks/telegram") {
-      const telegraph = new Telegraph(env);
+      const telegraph = new Telegraph(ctx, env);
       return telegraph.start(request);
-      // bot.command("start", telegraph.handleStartCommand);
-      // bot.command("description", telegraph.handleDescriptionCommand);
-      // bot.command("forget", telegraph.handleForgetCommand);
-      // bot.on("message:new_chat_members:me", telegraph.handleNewChatMembersMe);
-      // bot.on("message:left_chat_member:me", telegraph.handleLeftChatMemberMe);
-      // bot.on("message:new_chat_members:me", telegraph.handleNewChatMembers);
-      // bot.on("message:new_chat_members", telegraph.handleNewChatMembers);
-      // bot.on("message:left_chat_member", telegraph.handleLeftChatMember);
-      // bot.on("message:new_chat_photo", telegraph.handleNewChatPhoto);
-      // bot.on(
-      //   "edited_message:delete_chat_photo",
-      //   telegraph.handleDeleteChatPhoto,
-      // );
-      // bot.on("message:delete_chat_photo", telegraph.handleDeleteChatPhoto);
-      // bot.on("message:new_chat_title", telegraph.handleNewChatTitle);
-      // bot.on("message:chat_background_set", telegraph.handleChatBackgroundSet);
-      // bot.on(
-      //   "edited_message:chat_background_set",
-      //   telegraph.handleChatBackgroundSet,
-      // );
-      // bot.on("message:pinned_message", telegraph.handlePinnedMessage);
-      // bot.on("message", telegraph.handleMessage);
     }
 
     if (path === "/webhooks/telegram/setup") {

@@ -48,8 +48,9 @@ export class Telegraph {
   private chatHistory: UpstashRedisChatHistory;
   private rateLimit: UpstashRedisRateLimit;
   private lock: UpstashRedisLock;
+  private ctx: ExecutionContext;
 
-  constructor(env: Env) {
+  constructor(ctx: ExecutionContext, env: Env) {
     this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
       botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
     });
@@ -57,6 +58,7 @@ export class Telegraph {
     this.chatHistory = new UpstashRedisChatHistory(env);
     this.lock = new UpstashRedisLock(env);
     this.rateLimit = new UpstashRedisRateLimit(env);
+    this.ctx = ctx;
 
     this.initializeCommands();
     this.initializeMessageHandlers();
@@ -330,10 +332,18 @@ export class Telegraph {
   }
 
   private initializeMessageHandlers() {
-    this.bot.on("message:text", this.handleTextMessage.bind(this));
-    this.bot.on("message:voice", this.handleVoiceMessage.bind(this));
-    this.bot.on("message:photo", this.handlePhotoMessage.bind(this));
-    this.bot.on("message:audio", this.handleAudioMessage.bind(this));
+    this.bot.on("message:text", async (ctx) =>
+      this.ctx.waitUntil(this.handleTextMessage(ctx)),
+    );
+    this.bot.on("message:voice", async (ctx) =>
+      this.ctx.waitUntil(this.handleVoiceMessage(ctx)),
+    );
+    this.bot.on("message:photo", async (ctx) =>
+      this.ctx.waitUntil(this.handlePhotoMessage(ctx)),
+    );
+    this.bot.on("message:audio", async (ctx) =>
+      this.ctx.waitUntil(this.handleAudioMessage(ctx)),
+    );
   }
 
   private getSenderName(ctx: Context): string {

@@ -178,7 +178,7 @@ export class Telegraph {
           message: userMessage,
           type: "human",
           senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime(),
+          timestamp: getCurrentDateTime("Asia/Jakarta"),
         },
       );
       if (!(await this.shouldBotRespond(ctx))) {
@@ -236,7 +236,7 @@ export class Telegraph {
         message: response,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime(),
+        timestamp: getCurrentDateTime("Asia/Jakarta"),
       });
       await this.reply(ctx, output);
     } catch (error) {

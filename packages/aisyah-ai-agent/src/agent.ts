@@ -119,9 +119,8 @@ export class Agent implements IAgent {
   }
 
   private formatOutput(output: string): string {
-    return output
-      .replace(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\] \w+: /, "")
-      .replace(/^\w+: /, "");
+    const regex = /^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \w+:\s*|\w+:\s*/;
+    return output.replace(regex, "").trim();
   }
 
   async chat(
@@ -138,7 +137,7 @@ export class Agent implements IAgent {
       .invoke({
         system_message: new SystemMessage(this.systemPrompt),
         current_time: new SystemMessage(
-          `Context:\ncurrent date-time in UTC: ${getCurrentDateTime()}\ncurrent timezone: Asia/Jakarta`,
+          `Context:\ncurrent date-time in UTC: ${getCurrentDateTime("Asia/Jakarta")}\ncurrent timezone: Asia/Jakarta`,
         ),
         chat_id: new SystemMessage(`Context: chatId: ${chatId}`),
         message_id: new SystemMessage(`Context: messageId: ${messageId}`),

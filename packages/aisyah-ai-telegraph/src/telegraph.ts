@@ -1,14 +1,14 @@
+import { UpstashRedisChatHistory } from "@packages/shared/chat-history";
 import {
   extractAudioLink,
   getFile,
   getFileUrl,
-  isContainingAudioLink,
 } from "@packages/shared/telegram";
 import { outputSchema as agentOutputSchema } from "@packages/shared/types/agent";
 import {
-  inputSchema as sonataInputSchema,
-  outputSchema as sonataOutputSchema,
-} from "@packages/shared/types/sonata";
+  type chatHistoryArraySchema,
+  chatHistorySchema,
+} from "@packages/shared/types/chat-history";
 import { Bot, type Context, webhookCallback } from "grammy";
 import { z } from "zod";
 
@@ -31,21 +31,21 @@ const outputSchema = z.object({
 
 interface Env {
   AISYAH_AI_AGENT: Fetcher;
-  AISYAH_AI_SONATA: Fetcher;
   TELEGRAM_API_BASE_URL: string;
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_BOT_INFO: string;
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
+  CHAT_HISTORY_LIMIT: number;
 }
 
 export class Telegraph {
   private aisyahAiAgent: Fetcher;
-  private aisyahAiSonata: Fetcher;
   private readonly agentBindUrl =
     "https://aisyah-ai-agent.husni-adil-makmur.workers.dev/chat";
-  private readonly sonataBindUrl =
-    "https://aisyah-ai-sonata.husni-adil-makmur.workers.dev/speak";
 
   private bot: Bot;
+  private chatHistory: UpstashRedisChatHistory;
 
   private getFileUrl: (filePath?: string) => string | undefined;
 
@@ -76,7 +76,8 @@ export class Telegraph {
       botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
     });
     this.aisyahAiAgent = env.AISYAH_AI_AGENT;
-    this.aisyahAiSonata = env.AISYAH_AI_SONATA;
+    this.chatHistory = new UpstashRedisChatHistory(env);
+
     this.initializeCommands();
     this.initializeMessageHandlers();
 
@@ -103,35 +104,58 @@ export class Telegraph {
   }
 
   private initializeCommands() {
-    this.bot.command("start", (ctx) =>
-      this.handleCommand(
-        ctx,
-        "You are engaging in a conversation with me at the first time. Say hello and introduce yourself and ask me to introduce myself.",
-      ),
+    this.bot.command(
+      "start",
+      async (ctx) =>
+        await this.handleCommand(
+          ctx,
+          "You are engaging in a conversation with me at the first time. Say hello and introduce yourself and ask me to introduce myself.",
+        ),
     );
-    this.bot.command("description", (ctx) =>
-      this.handleCommand(ctx, "Tell me about yourself."),
+    this.bot.command(
+      "description",
+      async (ctx) => await this.handleCommand(ctx, "Tell me about yourself."),
     );
-    this.bot.command("forget", (ctx) =>
-      this.handleCommand(
+    this.bot.command("forget", async (ctx) => {
+      if (ctx.message?.chat?.id) {
+        this.chatHistory.clear(ctx.message?.chat?.id.toString());
+      }
+      return await this.handleCommand(
         ctx,
         "Write this: ----- CHAT HISTORY HAS BEEN DELETED ----- in your language.",
-      ),
-    );
+      );
+    });
   }
 
   async handleTextMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      const chatHistory = await this.saveUserMessage(
+        ctx.message?.chat?.id.toString(),
+        {
+          message: ctx.message?.text ?? "",
+          type: "human",
+          senderName: this.getSenderName(ctx),
+        },
+      );
       if (!(await this.shouldBotRespond(ctx))) {
         return;
       }
       await ctx.replyWithChatAction("typing");
-      const response = await this.askAgent(ctx, ctx.message?.text ?? "");
+      const response = await this.askAgent(
+        ctx,
+        ctx.message?.text ?? "",
+        chatHistory.slice(0, -1),
+      );
       const audioLink = extractAudioLink(response);
       const output = this.composeMessage(ctx, {
         message: audioLink ?? response,
         replyType: audioLink ? "voice" : "text",
+      });
+      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
+        message: output.message,
+        type: "ai",
+        senderName: this.bot.botInfo.first_name,
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -143,6 +167,14 @@ export class Telegraph {
   async handleVoiceMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      const chatHistory = await this.saveUserMessage(
+        ctx.message?.chat?.id.toString(),
+        {
+          message: ctx.message?.text ?? "",
+          type: "human",
+          senderName: this.getSenderName(ctx),
+        },
+      );
       if (!(await this.shouldBotRespond(ctx))) {
         return;
       }
@@ -154,11 +186,62 @@ export class Telegraph {
       const command =
         "Ask Sonata then just directly response with the url of the audio you got from Sonata.";
       const question = [caption, voiceUrl, command].filter(Boolean).join("\n");
-      const agentResponse = await this.askAgent(ctx, question);
+      const agentResponse = await this.askAgent(
+        ctx,
+        question,
+        chatHistory.slice(0, -1),
+      );
       const audioLink = extractAudioLink(agentResponse);
       const output = this.composeMessage(ctx, {
-        message: audioLink || "Cuaca hari ini cerah ya",
+        message: audioLink ?? agentResponse,
         replyType: audioLink ? "voice" : "text",
+      });
+      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
+        message: output.message,
+        type: "ai",
+        senderName: this.bot.botInfo.first_name,
+      });
+      await this.reply(ctx, output);
+    } catch (error) {
+      console.log(error);
+      await ctx.reply(`${error}`);
+    }
+  }
+
+  async handleAudioMessage(ctx: Context): Promise<void> {
+    try {
+      console.log(ctx.message);
+      const chatHistory = await this.saveUserMessage(
+        ctx.message?.chat?.id.toString(),
+        {
+          message: ctx.message?.text ?? "",
+          type: "human",
+          senderName: this.getSenderName(ctx),
+        },
+      );
+      if (!(await this.shouldBotRespond(ctx))) {
+        return;
+      }
+      await ctx.replyWithChatAction("typing");
+      const fileId = ctx.message?.voice?.file_id;
+      const file = await this.getFile(fileId);
+      const audioUrl = this.getFileUrl(file?.result.file_path);
+      const caption = ctx.message?.caption;
+      const question = [caption, audioUrl].filter(Boolean).join("\n");
+      const agentResponse = await this.askAgent(
+        ctx,
+        question,
+        chatHistory.slice(0, -1),
+      );
+      const audioLink = extractAudioLink(agentResponse);
+      const output = this.composeMessage(ctx, {
+        message: audioLink ?? agentResponse,
+        replyType: audioLink ? "voice" : "text",
+      });
+      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
+        message: output.message,
+        type: "ai",
+        senderName: this.bot.botInfo.first_name,
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -170,6 +253,14 @@ export class Telegraph {
   async handlePhotoMessage(ctx: Context): Promise<void> {
     try {
       console.log(ctx.message);
+      const chatHistory = await this.saveUserMessage(
+        ctx.message?.chat?.id.toString(),
+        {
+          message: ctx.message?.text ?? "",
+          type: "human",
+          senderName: this.getSenderName(ctx),
+        },
+      );
       if (!(await this.shouldBotRespond(ctx))) {
         return;
       }
@@ -179,11 +270,20 @@ export class Telegraph {
       const photoLink = this.getFileUrl(file?.result.file_path);
       const caption = ctx.message?.caption;
       const question = [caption, photoLink].filter(Boolean).join("\n");
-      const agentResponse = await this.askAgent(ctx, question);
+      const agentResponse = await this.askAgent(
+        ctx,
+        question,
+        chatHistory.slice(0, -1),
+      );
       const audioLink = extractAudioLink(agentResponse);
       const output = this.composeMessage(ctx, {
         message: audioLink ?? agentResponse,
         replyType: audioLink ? "voice" : "text",
+      });
+      await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
+        message: output.message,
+        type: "ai",
+        senderName: this.bot.botInfo.first_name,
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -208,14 +308,18 @@ export class Telegraph {
     );
   }
 
-  private async askAgent(ctx: Context, question: string): Promise<string> {
+  private async askAgent(
+    ctx: Context,
+    question: string,
+    chatHistory: z.infer<typeof chatHistoryArraySchema> = [],
+  ) {
     const input = {
       chatId: ctx.message?.chat?.id.toString() ?? "",
       messageId: ctx.message?.message_id.toString() ?? "",
       senderId: ctx.message?.from?.id.toString() ?? "",
       senderName: this.getSenderName(ctx),
       message: question,
-      chatHistory: [],
+      chatHistory: chatHistory,
     };
     const response = await this.aisyahAiAgent.fetch(this.agentBindUrl, {
       method: "POST",
@@ -260,5 +364,15 @@ export class Telegraph {
           output.chatType === "private" ? undefined : replyToMessageId,
       });
     }
+  }
+
+  private async saveUserMessage(
+    chatId: string | undefined,
+    ...userMessages: z.infer<typeof chatHistoryArraySchema>
+  ): Promise<z.infer<typeof chatHistoryArraySchema>> {
+    if (!chatId) {
+      return [];
+    }
+    return this.chatHistory.append(chatId, ...userMessages);
   }
 }

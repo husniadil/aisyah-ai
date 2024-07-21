@@ -2,7 +2,6 @@ import type {
   IChatHistory,
   chatHistoryArraySchema,
   keyInputSchema,
-  zVoidOutputSchema,
 } from "@packages/shared/types/chat-history";
 import { Redis } from "@upstash/redis/cloudflare";
 import type { z } from "zod";
@@ -32,15 +31,18 @@ export class UpstashRedisChatHistory implements IChatHistory {
   async append(
     key: z.infer<typeof keyInputSchema>,
     ...messages: z.infer<typeof chatHistoryArraySchema>
-  ): Promise<z.infer<typeof zVoidOutputSchema>> {
+  ): Promise<z.infer<typeof chatHistoryArraySchema>> {
     const fullKey = this.getFullKey(key);
     try {
       const data = await this.get(key);
       data.push(...messages);
-      await this.redis.set(fullKey, JSON.stringify(data.slice(-this.limit)));
+      const truncatedData = data.slice(-this.limit);
+      await this.redis.set(fullKey, JSON.stringify(truncatedData));
+      return truncatedData;
     } catch (error) {
       console.warn(`Error appending messages to ${key}:`, error);
     }
+    return messages;
   }
 
   async get(
@@ -61,13 +63,14 @@ export class UpstashRedisChatHistory implements IChatHistory {
 
   async clear(
     key: z.infer<typeof keyInputSchema>,
-  ): Promise<z.infer<typeof zVoidOutputSchema>> {
+  ): Promise<z.infer<typeof chatHistoryArraySchema>> {
     const fullKey = this.getFullKey(key);
     try {
       await this.redis.del(fullKey);
     } catch (error) {
       console.warn(`Error clearing messages from ${key}:`, error);
     }
+    return [];
   }
 
   private getFullKey(key: string): string {

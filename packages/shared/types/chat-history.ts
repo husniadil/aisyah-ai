@@ -12,17 +12,15 @@ export const keyInputSchema = z
   .string()
   .describe("The key to store the chat history");
 
-export const zVoidOutputSchema = z.void();
-
 export interface IChatHistory {
   append(
     key: z.infer<typeof keyInputSchema>,
     ...messages: z.infer<typeof chatHistoryArraySchema>
-  ): Promise<z.infer<typeof zVoidOutputSchema>>;
+  ): Promise<z.infer<typeof chatHistoryArraySchema>>;
   get(
     key: z.infer<typeof keyInputSchema>,
   ): Promise<z.infer<typeof chatHistoryArraySchema>>;
   clear(
     key: z.infer<typeof keyInputSchema>,
-  ): Promise<z.infer<typeof zVoidOutputSchema>>;
+  ): Promise<z.infer<typeof chatHistoryArraySchema>>;
 }

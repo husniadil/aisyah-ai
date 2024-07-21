@@ -134,7 +134,7 @@ export class Telegraph {
       });
       await this.reply(ctx, output);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       await ctx.reply(`${(error as Error).message}`);
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
@@ -162,9 +162,10 @@ export class Telegraph {
     });
   }
 
-  async handleTextMessage(ctx: Context): Promise<void> {
+  async handleMessage(ctx: Context): Promise<void> {
     try {
-      console.log(ctx.message);
+      console.log("Handling message:", ctx.message);
+
       await this.handleRateLimit(ctx);
       await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
 
@@ -237,7 +238,7 @@ export class Telegraph {
       });
       await this.reply(ctx, output);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       await ctx.reply(`${(error as Error).message}`);
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
@@ -246,7 +247,7 @@ export class Telegraph {
 
   private initializeMessageHandlers() {
     this.bot.on("message", async (ctx) =>
-      this.ctx.waitUntil(this.handleTextMessage(ctx)),
+      this.ctx.waitUntil(this.handleMessage(ctx)),
     );
   }
 

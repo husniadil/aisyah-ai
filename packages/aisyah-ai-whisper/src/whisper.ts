@@ -22,6 +22,8 @@ export class Whisper implements IWhisper {
   async listen(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
+    console.log("Transcribing audio from URL with the following input:", input);
+
     const { audioUrl } = input;
     try {
       const transcription = await this.openAI.audio.transcriptions.create({

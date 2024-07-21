@@ -128,7 +128,16 @@ export class Agent implements IAgent {
   async chat(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
-    const { chatId, messageId, senderName, message, chatHistory } = input;
+    const { chatId, messageId, senderId, senderName, message, chatHistory } =
+      input;
+    console.log("Chatting with the following input:", {
+      chatId,
+      messageId,
+      senderId,
+      senderName,
+      message,
+    });
+
     const userInput: BaseMessagePromptTemplateLike = [
       "human",
       `${senderName}: ${message}`,

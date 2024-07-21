@@ -30,6 +30,8 @@ export class Explorer implements IExplorer {
     input: z.infer<typeof searchGoogleInputSchema>,
   ): Promise<z.infer<typeof searchGoogleOutputSchema>> {
     try {
+      console.log("Searching Google with the following input:", input);
+
       const { query } = input;
       if (!query) {
         throw new Error("Query is required.");
@@ -50,6 +52,7 @@ export class Explorer implements IExplorer {
     if (!input.url) {
       throw new Error("URL is required.");
     }
+    console.log("Fetching webpage with the following data:", input);
     try {
       const url = this.createJinaReaderProxyURL(input.url);
       const response = await fetch(url, {

@@ -21,6 +21,8 @@ export class Storm implements IStorm {
   async predict(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
+    console.log("Fetching weather data with the following input:", input);
+
     const { city, unit } = input;
     const url = this.createUrl(input);
     try {

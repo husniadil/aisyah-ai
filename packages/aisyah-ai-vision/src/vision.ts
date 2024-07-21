@@ -24,6 +24,11 @@ export class Vision implements IVision {
   async describe(
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
+    console.log(
+      "Generating description for image with the following input:",
+      input,
+    );
+
     const { imageUrl } = input;
     try {
       const response = await this.generateDescription(imageUrl);

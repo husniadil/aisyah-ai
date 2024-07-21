@@ -39,10 +39,7 @@ export class Reminder implements IReminder {
     input: z.infer<typeof inputSchema>,
   ): Promise<z.infer<typeof outputSchema>> {
     const { chatId, title, date, time, timeZone } = input;
-    console.log("Setting reminder with the following data:", input);
-    console.log(
-      `set_reminder("${chatId}", "${title}", "${timeZone}", "${date}", "${time}")`,
-    );
+    console.log("Setting reminder with the following input:", input);
     const url = this.createUrl(input);
     try {
       const response = await fetch(url, {

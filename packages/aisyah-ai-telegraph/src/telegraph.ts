@@ -137,7 +137,7 @@ export class Telegraph {
           message: ctx.message?.text ?? "",
           type: "human",
           senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+          timestamp: getCurrentDateTime(),
         },
       );
       if (!(await this.shouldBotRespond(ctx))) {
@@ -158,7 +158,7 @@ export class Telegraph {
         message: output.message,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+        timestamp: getCurrentDateTime(),
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -176,7 +176,7 @@ export class Telegraph {
           message: ctx.message?.text ?? "",
           type: "human",
           senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+          timestamp: getCurrentDateTime(),
         },
       );
       if (!(await this.shouldBotRespond(ctx))) {
@@ -204,7 +204,7 @@ export class Telegraph {
         message: output.message,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+        timestamp: getCurrentDateTime(),
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -222,7 +222,7 @@ export class Telegraph {
           message: ctx.message?.text ?? "",
           type: "human",
           senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+          timestamp: getCurrentDateTime(),
         },
       );
       if (!(await this.shouldBotRespond(ctx))) {
@@ -248,7 +248,7 @@ export class Telegraph {
         message: output.message,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+        timestamp: getCurrentDateTime(),
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -266,7 +266,7 @@ export class Telegraph {
           message: ctx.message?.text ?? "",
           type: "human",
           senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+          timestamp: getCurrentDateTime(),
         },
       );
       if (!(await this.shouldBotRespond(ctx))) {
@@ -292,7 +292,7 @@ export class Telegraph {
         message: output.message,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime({ timeZone: "Asia/Jakarta" }),
+        timestamp: getCurrentDateTime(),
       });
       await this.reply(ctx, output);
     } catch (error) {

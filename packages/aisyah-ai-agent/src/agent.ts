@@ -119,9 +119,9 @@ export class Agent implements IAgent {
   }
 
   private formatOutput(output: string): string {
-    return output.toLowerCase().startsWith(`${this.name.toLowerCase()}: `)
-      ? output.slice(this.name.length + 2)
-      : output;
+    return output
+      .replace(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\] \w+: /, "")
+      .replace(/^\w+: /, "");
   }
 
   async chat(
@@ -138,7 +138,7 @@ export class Agent implements IAgent {
       .invoke({
         system_message: new SystemMessage(this.systemPrompt),
         current_time: new SystemMessage(
-          `Context: current datetime: ${getCurrentDateTime({ timeZone: "Asia/Jakarta" })}`,
+          `Context: current datetime: ${getCurrentDateTime()}`,
         ),
         chat_id: new SystemMessage(`Context: chatId: ${chatId}`),
         message_id: new SystemMessage(`Context: messageId: ${messageId}`),

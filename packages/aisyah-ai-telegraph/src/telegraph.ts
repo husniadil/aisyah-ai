@@ -198,60 +198,10 @@ export class Telegraph {
         chatHistory: chatHistory.slice(0, -1),
       });
 
-      let output: ComposeMessageOutput;
-      if (ctx.message?.voice) {
-        try {
-          const sonataResponse = await this.sonataTool.speak({
-            text: response.data,
-            metadata: {
-              chatId: ctx.message?.chat?.id.toString() ?? "",
-              messageId: ctx.message?.message_id.toString() ?? "",
-            },
-          });
-          output = this.composeMessage(ctx, {
-            message: sonataResponse.data ?? response.data,
-            replyType: sonataResponse.data ? "voice" : "text",
-          });
-        } catch (error) {
-          output = this.composeMessage(ctx, {
-            message: response.data,
-            replyType: "text",
-          });
-        }
-      } else if (isContainingAudioLink(response.data)) {
-        const audioLink = extractAudioLink(response.data);
-        if (audioLink) {
-          try {
-            const sonataResponse = await this.sonataTool.speak({
-              text: response.data,
-              metadata: {
-                chatId: ctx.message?.chat?.id.toString() ?? "",
-                messageId: ctx.message?.message_id.toString() ?? "",
-              },
-            });
-            output = this.composeMessage(ctx, {
-              message: sonataResponse.data ?? response.data,
-              replyType: sonataResponse.data ? "voice" : "text",
-            });
-          } catch (error) {
-            output = this.composeMessage(ctx, {
-              message: response.data,
-              replyType: "text",
-            });
-          }
-        } else {
-          output = this.composeMessage(ctx, {
-            message: response.data,
-            replyType: "text",
-          });
-        }
-      } else {
-        output = this.composeMessage(ctx, {
-          message: response.data,
-          replyType: "text",
-        });
-      }
-
+      const output = await this.composeMessageOutputMaybeAudio(
+        ctx,
+        response.data,
+      );
       await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
         message: response.data,
         type: "ai",
@@ -267,6 +217,66 @@ export class Telegraph {
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
+  }
+
+  private async composeMessageOutputMaybeAudio(
+    ctx: Context,
+    agentResponse: string,
+  ): Promise<ComposeMessageOutput> {
+    let output: ComposeMessageOutput;
+    if (ctx.message?.voice) {
+      try {
+        const sonataResponse = await this.sonataTool.speak({
+          text: agentResponse,
+          metadata: {
+            chatId: ctx.message?.chat?.id.toString() ?? "",
+            messageId: ctx.message?.message_id.toString() ?? "",
+          },
+        });
+        output = this.composeMessage(ctx, {
+          message: sonataResponse.data ?? agentResponse,
+          replyType: sonataResponse.data ? "voice" : "text",
+        });
+      } catch (error) {
+        output = this.composeMessage(ctx, {
+          message: agentResponse,
+          replyType: "text",
+        });
+      }
+    } else if (isContainingAudioLink(agentResponse)) {
+      const audioLink = extractAudioLink(agentResponse);
+      if (audioLink) {
+        try {
+          const sonataResponse = await this.sonataTool.speak({
+            text: agentResponse,
+            metadata: {
+              chatId: ctx.message?.chat?.id.toString() ?? "",
+              messageId: ctx.message?.message_id.toString() ?? "",
+            },
+          });
+          output = this.composeMessage(ctx, {
+            message: sonataResponse.data ?? agentResponse,
+            replyType: sonataResponse.data ? "voice" : "text",
+          });
+        } catch (error) {
+          output = this.composeMessage(ctx, {
+            message: agentResponse,
+            replyType: "text",
+          });
+        }
+      } else {
+        output = this.composeMessage(ctx, {
+          message: agentResponse,
+          replyType: "text",
+        });
+      }
+    } else {
+      output = this.composeMessage(ctx, {
+        message: agentResponse,
+        replyType: "text",
+      });
+    }
+    return output;
   }
 
   private initializeMessageHandlers(executionContext: ExecutionContext) {

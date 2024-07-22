@@ -42,7 +42,7 @@ export class Telegraph {
   private lock: UpstashRedisLock;
   private recentInteractions: KVNamespace;
 
-  constructor(env: Env, settings: TelegraphSettings) {
+  constructor(ctx: ExecutionContext, env: Env, settings: TelegraphSettings) {
     this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
       botInfo: JSON.parse(env.TELEGRAM_BOT_INFO) as UserFromGetMe,
     });
@@ -61,7 +61,7 @@ export class Telegraph {
     this.rateLimit = new UpstashRedisRateLimit(env);
 
     this.initializeCommands();
-    this.initializeMessageHandlers();
+    this.initializeMessageHandlers(ctx);
 
     this.getFileUrl = getFileUrl({
       telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
@@ -268,8 +268,10 @@ export class Telegraph {
     }
   }
 
-  private initializeMessageHandlers() {
-    this.bot.on("message", async (ctx) => await this.handleMessage(ctx));
+  private initializeMessageHandlers(executionContext: ExecutionContext) {
+    this.bot.on("message", async (ctx) =>
+      executionContext.waitUntil(this.handleMessage(ctx)),
+    );
   }
 
   private getSenderName(ctx: Context): string {

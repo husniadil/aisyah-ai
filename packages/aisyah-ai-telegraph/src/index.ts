@@ -55,16 +55,19 @@ app.post("/webhooks/reminders-api", async (c) => {
   return c.json("OK\n");
 });
 
-app.mount("/webhooks/telegram", async (request, env: Env) => {
-  const input = (await request.clone().json()) as {
-    message: Message | Update.NonChannel;
-  };
-  const chatId = input.message.chat.id.toString();
-  const settings = (await env.SETTINGS.get(chatId)) || "{}";
-  const parsedSettings = TelegraphSettings.parse(JSON.parse(settings));
-  const telegraph = new Telegraph(env, parsedSettings);
-  return await telegraph.start(request);
-});
+app.mount(
+  "/webhooks/telegram",
+  async (request, env: Env, ctx: ExecutionContext) => {
+    const input = (await request.clone().json()) as {
+      message: Message | Update.NonChannel;
+    };
+    const chatId = input.message.chat.id.toString();
+    const settings = (await env.SETTINGS.get(chatId)) || "{}";
+    const parsedSettings = TelegraphSettings.parse(JSON.parse(settings));
+    const telegraph = new Telegraph(ctx, env, parsedSettings);
+    return await telegraph.start(request);
+  },
+);
 
 app.get("/settings/:key", async (c) => {
   const key = c.req.param("key");

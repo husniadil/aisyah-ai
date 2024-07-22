@@ -1,6 +1,7 @@
 import { sendMessage } from "@packages/shared/telegram";
 import { AgentTool } from "@packages/shared/tools/agent";
 import { TelegraphSettings } from "@packages/shared/types/settings";
+import { AuthInput, MessageInput } from "@packages/shared/types/telegram";
 import type { Message, Update } from "grammy/types";
 import { Telegraph } from "./telegraph";
 
@@ -25,17 +26,16 @@ app.post("/webhooks/reminders-api", async (c) => {
     if (!body.reminders_notified || body.reminders_notified.length === 0) {
       return c.json("No reminders to handle.\n");
     }
-    const topic = body.reminders_notified[0].title;
-    const chatId = body.reminders_notified[0].notes;
-    if (!chatId || !topic) {
+    const { title, notes } = body.reminders_notified[0];
+    if (!title || !notes) {
       return c.json("Invalid reminder format.\n");
     }
-    const question = `Tolong buatkan himbauan tentang ini sekarang, respon dengan gaya bicaramu: ${topic}`;
+    const question = `Tolong buatkan himbauan tentang ini sekarang, respon dengan gayamu: ${title}`;
 
     const agent = new AgentTool(c.env.AISYAH_AI_AGENT);
 
     const response = await agent.chat({
-      chatId,
+      chatId: notes,
       messageId: "0",
       senderId: "0",
       senderName: "",
@@ -43,13 +43,15 @@ app.post("/webhooks/reminders-api", async (c) => {
       chatHistory: [],
     });
 
-    return await sendMessage({
+    const authInput = AuthInput.parse({
       telegramApiBaseUrl: c.env.TELEGRAM_API_BASE_URL,
       botToken: c.env.TELEGRAM_BOT_TOKEN,
-    })({
-      chatId,
+    });
+    const messageInput = MessageInput.parse({
+      chatId: notes,
       text: response.data,
     });
+    return await sendMessage(authInput)(messageInput);
   } catch (error) {
     console.error("Failed to handle reminder:", error);
   }

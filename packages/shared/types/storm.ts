@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const inputSchema = z.object({
+export const GetWeatherInput = z.object({
   city: z.string().describe("The city name to get the weather"),
   unit: z
     .enum(["metric", "imperial", "standard"])
@@ -9,7 +9,7 @@ export const inputSchema = z.object({
     .describe("The unit of measurement"),
 });
 
-export const outputSchema = z.object({
+export const GetWeatherOutput = z.object({
   coord: z
     .object({
       lon: z.number().optional().describe("The longitude of the city"),
@@ -77,8 +77,9 @@ export const outputSchema = z.object({
   cod: z.number().optional().describe("The cod"),
 });
 
+export type GetWeatherInput = z.infer<typeof GetWeatherInput>;
+export type GetWeatherOutput = z.infer<typeof GetWeatherOutput>;
+
 export interface IStorm {
-  predict(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>>;
+  predict(input: GetWeatherInput): Promise<GetWeatherOutput>;
 }

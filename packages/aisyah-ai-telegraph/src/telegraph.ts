@@ -7,39 +7,15 @@ import {
   getFileUrl,
   isContainingAudioLink,
 } from "@packages/shared/telegram";
-import { getCurrentDateTime } from "@packages/shared/time";
-import {
-  type inputSchema as agentInputSchema,
-  outputSchema as agentOutputSchema,
-} from "@packages/shared/types/agent";
-import type { chatHistoryArraySchema } from "@packages/shared/types/chat-history";
-import {
-  type inputSchema as sonataInputSchema,
-  outputSchema as sonataOutputSchema,
-} from "@packages/shared/types/sonata";
-import {
-  type inputSchema as whisperInputSchema,
-  outputSchema as whisperOutputSchema,
-} from "@packages/shared/types/whisper";
+import { AgentTool } from "@packages/shared/tools/agent";
+import { SonataTool } from "@packages/shared/tools/sonata";
+import { CurrentTimeTool } from "@packages/shared/tools/time";
+import { WhisperTool } from "@packages/shared/tools/whisper";
+import type { ChatHistoryList } from "@packages/shared/types/chat-history";
+import type { TelegraphSettings } from "@packages/shared/types/settings";
 import { Bot, type Context, webhookCallback } from "grammy";
-import { z } from "zod";
-
-const composeMessageInputSchema = z.object({
-  message: z.string().describe("The message."),
-  replyType: z.enum(["text", "voice"]).describe("The type of reply."),
-});
-
-const outputSchema = z.object({
-  chatId: z.string().describe("The chat ID."),
-  messageId: z.string().describe("The message ID."),
-  senderId: z.string().describe("The sender ID."),
-  senderName: z.string().describe("The sender name."),
-  message: z.string().describe("The message."),
-  chatType: z
-    .enum(["private", "group", "supergroup", "channel"])
-    .describe("The chat type."),
-  replyType: z.enum(["text", "voice"]).describe("The type of reply."),
-});
+import type { UserFromGetMe } from "grammy/types";
+import { type ComposeMessageInput, ComposeMessageOutput } from "./util";
 
 interface Env {
   AISYAH_AI_AGENT: Fetcher;
@@ -55,36 +31,34 @@ interface Env {
 }
 
 export class Telegraph {
-  private agent: Fetcher;
-  private whisper: Fetcher;
-  private sonata: Fetcher;
-  private readonly agentBindUrl =
-    "https://aisyah-ai-agent.husni-adil-makmur.workers.dev/chat";
-  private readonly whisperBindUrl =
-    "https://aisyah-ai-whisper.husni-adil-makmur.workers.dev/listen";
-  private readonly sonataBindUrl =
-    "https://aisyah-ai-sonata.husni-adil-makmur.workers.dev/speak";
+  private agentTool: AgentTool;
+  private whisperTool: WhisperTool;
+  private sonataTool: SonataTool;
+  private currentTimeTool: CurrentTimeTool;
 
   private bot: Bot;
   private chatHistory: UpstashRedisChatHistory;
   private rateLimit: UpstashRedisRateLimit;
   private lock: UpstashRedisLock;
-  private ctx: ExecutionContext;
   private recentInteractions: KVNamespace;
 
-  constructor(ctx: ExecutionContext, env: Env) {
+  constructor(env: Env, settings: TelegraphSettings) {
     this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
-      botInfo: JSON.parse(env.TELEGRAM_BOT_INFO),
+      botInfo: JSON.parse(env.TELEGRAM_BOT_INFO) as UserFromGetMe,
     });
-    this.agent = env.AISYAH_AI_AGENT;
-    this.whisper = env.AISYAH_AI_WHISPER;
-    this.sonata = env.AISYAH_AI_SONATA;
+    this.agentTool = new AgentTool(env.AISYAH_AI_AGENT);
+    this.whisperTool = new WhisperTool(env.AISYAH_AI_WHISPER);
+    this.sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
+    this.currentTimeTool = new CurrentTimeTool();
 
     this.recentInteractions = env.RECENT_INTERACTIONS;
-    this.chatHistory = new UpstashRedisChatHistory(env);
+    this.chatHistory = new UpstashRedisChatHistory({
+      UPSTASH_REDIS_REST_URL: env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: env.UPSTASH_REDIS_REST_TOKEN,
+      CHAT_HISTORY_LIMIT: settings.chatHistoryLimit || env.CHAT_HISTORY_LIMIT,
+    });
     this.lock = new UpstashRedisLock(env);
     this.rateLimit = new UpstashRedisRateLimit(env);
-    this.ctx = ctx;
 
     this.initializeCommands();
     this.initializeMessageHandlers();
@@ -99,7 +73,7 @@ export class Telegraph {
     });
   }
 
-  start(request: Request<unknown, IncomingRequestCfProperties<unknown>>) {
+  start(request: Request<unknown, CfProperties<unknown>>) {
     return webhookCallback(this.bot, "cloudflare-mod")(request);
   }
 
@@ -132,9 +106,6 @@ export class Telegraph {
       ctx.message?.entities?.some((entity) => entity.type === "mention") &&
       !mentionsBot;
 
-    console.log("mentionsBot", mentionsBot);
-    console.log("isMentioningOtherUsers", isMentioningOtherUsers);
-
     return (
       !isFromBot &&
       (isPrivateChat ||
@@ -148,8 +119,16 @@ export class Telegraph {
     try {
       await this.handleRateLimit(ctx);
       await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
-      const output = this.composeOutputMessage(ctx, {
-        message: await this.askAgent(ctx, command),
+      const response = await this.agentTool.chat({
+        chatId: ctx.message?.chat?.id.toString() ?? "",
+        messageId: ctx.message?.message_id.toString() ?? "",
+        senderId: ctx.message?.from?.id.toString() ?? "",
+        senderName: this.getSenderName(ctx),
+        message: command,
+        chatHistory: [],
+      });
+      const output = this.composeMessage(ctx, {
+        message: response.data,
         replyType: "text",
       });
       await this.reply(ctx, output);
@@ -183,6 +162,7 @@ export class Telegraph {
   }
 
   async handleMessage(ctx: Context): Promise<void> {
+    ctx.message;
     try {
       console.log("Handling message:", ctx.message);
 
@@ -196,7 +176,9 @@ export class Telegraph {
           message: userMessage,
           type: "human",
           senderName: this.getSenderName(ctx),
-          timestamp: getCurrentDateTime("Asia/Jakarta"),
+          timestamp: this.currentTimeTool.getCurrentDateTime({
+            timeZone: "Asia/Jakarta",
+          }),
         },
       );
       if (!(await this.shouldBotRespond(ctx))) {
@@ -206,59 +188,76 @@ export class Telegraph {
         ctx.message?.chat?.id.toString() ?? "",
         ctx.message?.from?.id.toString() ?? "",
       );
-      const response = await this.askAgent(
-        ctx,
-        userMessage,
-        chatHistory.slice(0, -1),
-      );
+      const response = await this.agentTool.chat({
+        chatId: ctx.message?.chat?.id.toString() ?? "",
+        messageId: ctx.message?.message_id.toString() ?? "",
+        senderId: ctx.message?.from?.id.toString() ?? "",
+        senderName: this.getSenderName(ctx),
+        message: userMessage,
+        chatHistory: chatHistory.slice(0, -1),
+      });
 
-      let output: z.infer<typeof outputSchema>;
+      let output: ComposeMessageOutput;
       if (ctx.message?.voice) {
         try {
-          const sonataResponse = await this.askSonata(ctx, response);
-          output = this.composeOutputMessage(ctx, {
-            message: sonataResponse ?? response,
-            replyType: sonataResponse ? "voice" : "text",
+          const sonataResponse = await this.sonataTool.speak({
+            text: response.data,
+            metadata: {
+              chatId: ctx.message?.chat?.id.toString() ?? "",
+              messageId: ctx.message?.message_id.toString() ?? "",
+            },
+          });
+          output = this.composeMessage(ctx, {
+            message: sonataResponse.data ?? response.data,
+            replyType: sonataResponse.data ? "voice" : "text",
           });
         } catch (error) {
-          output = this.composeOutputMessage(ctx, {
-            message: response,
+          output = this.composeMessage(ctx, {
+            message: response.data,
             replyType: "text",
           });
         }
-      } else if (isContainingAudioLink(response)) {
-        const audioLink = extractAudioLink(response);
+      } else if (isContainingAudioLink(response.data)) {
+        const audioLink = extractAudioLink(response.data);
         if (audioLink) {
           try {
-            const sonataResponse = await this.askSonata(ctx, audioLink);
-            output = this.composeOutputMessage(ctx, {
-              message: sonataResponse ?? response,
-              replyType: sonataResponse ? "voice" : "text",
+            const sonataResponse = await this.sonataTool.speak({
+              text: response.data,
+              metadata: {
+                chatId: ctx.message?.chat?.id.toString() ?? "",
+                messageId: ctx.message?.message_id.toString() ?? "",
+              },
+            });
+            output = this.composeMessage(ctx, {
+              message: sonataResponse.data ?? response.data,
+              replyType: sonataResponse.data ? "voice" : "text",
             });
           } catch (error) {
-            output = this.composeOutputMessage(ctx, {
-              message: response,
+            output = this.composeMessage(ctx, {
+              message: response.data,
               replyType: "text",
             });
           }
         } else {
-          output = this.composeOutputMessage(ctx, {
-            message: response,
+          output = this.composeMessage(ctx, {
+            message: response.data,
             replyType: "text",
           });
         }
       } else {
-        output = this.composeOutputMessage(ctx, {
-          message: response,
+        output = this.composeMessage(ctx, {
+          message: response.data,
           replyType: "text",
         });
       }
 
       await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
-        message: response,
+        message: response.data,
         type: "ai",
         senderName: this.bot.botInfo.first_name,
-        timestamp: getCurrentDateTime("Asia/Jakarta"),
+        timestamp: this.currentTimeTool.getCurrentDateTime({
+          timeZone: "Asia/Jakarta",
+        }),
       });
       await this.reply(ctx, output);
     } catch (error) {
@@ -270,9 +269,7 @@ export class Telegraph {
   }
 
   private initializeMessageHandlers() {
-    this.bot.on("message", async (ctx) =>
-      this.ctx.waitUntil(this.handleMessage(ctx)),
-    );
+    this.bot.on("message", async (ctx) => await this.handleMessage(ctx));
   }
 
   private getSenderName(ctx: Context): string {
@@ -285,66 +282,11 @@ export class Telegraph {
     );
   }
 
-  private async askAgent(
+  private composeMessage(
     ctx: Context,
-    question: string,
-    chatHistory: z.infer<typeof chatHistoryArraySchema> = [],
-  ) {
-    const input: z.infer<typeof agentInputSchema> = {
-      chatId: ctx.message?.chat?.id.toString() ?? "",
-      messageId: ctx.message?.message_id.toString() ?? "",
-      senderId: ctx.message?.from?.id.toString() ?? "",
-      senderName: this.getSenderName(ctx),
-      message: question,
-      chatHistory: chatHistory,
-    };
-    const response = await this.agent.fetch(this.agentBindUrl, {
-      method: "POST",
-      body: JSON.stringify(input),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    return agentOutputSchema.parse(await response.json()).response;
-  }
-
-  private async askWhisper(question: string) {
-    const input: z.infer<typeof whisperInputSchema> = {
-      audioUrl: question,
-    };
-    const response = await this.whisper.fetch(this.whisperBindUrl, {
-      method: "POST",
-      body: JSON.stringify(input),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    return whisperOutputSchema.parse(await response.json()).text;
-  }
-
-  private async askSonata(ctx: Context, question: string) {
-    const input: z.infer<typeof sonataInputSchema> = {
-      text: question,
-      metadata: {
-        chatId: ctx.message?.chat?.id.toString() ?? "",
-        messageId: ctx.message?.message_id.toString() ?? "",
-      },
-    };
-    const response = await this.sonata.fetch(this.sonataBindUrl, {
-      method: "POST",
-      body: JSON.stringify(input),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    return sonataOutputSchema.parse(await response.json()).audioUrl;
-  }
-
-  private composeOutputMessage(
-    ctx: Context,
-    input: z.infer<typeof composeMessageInputSchema>,
-  ): z.infer<typeof outputSchema> {
-    return {
+    input: ComposeMessageInput,
+  ): ComposeMessageOutput {
+    return ComposeMessageOutput.parse({
       chatId: ctx.message?.chat?.id.toString() ?? "",
       messageId: ctx.message?.message_id.toString() ?? "",
       senderId: ctx.message?.from?.id.toString() ?? "",
@@ -352,10 +294,10 @@ export class Telegraph {
       chatType: ctx.message?.chat?.type ?? "private",
       message: input.message,
       replyType: input.replyType,
-    };
+    });
   }
 
-  async reply(ctx: Context, output: z.infer<typeof outputSchema>) {
+  async reply(ctx: Context, output: ComposeMessageOutput) {
     await ctx.replyWithChatAction(
       output.replyType === "voice" ? "record_voice" : "typing",
     );
@@ -377,8 +319,8 @@ export class Telegraph {
 
   private async saveUserMessage(
     chatId: string | undefined,
-    ...userMessages: z.infer<typeof chatHistoryArraySchema>
-  ): Promise<z.infer<typeof chatHistoryArraySchema>> {
+    ...userMessages: ChatHistoryList
+  ): Promise<ChatHistoryList> {
     if (!chatId) {
       return [];
     }
@@ -427,9 +369,15 @@ export class Telegraph {
   private async constructUserMessage(ctx: Context) {
     const fileUrls = await this.extractFileUrls(ctx);
     if (ctx.message?.voice || ctx.message?.reply_to_message?.voice) {
-      const voiceUrl = fileUrls.pop();
+      const voiceUrl = fileUrls.shift();
       try {
-        return voiceUrl ? await this.askWhisper(voiceUrl) : "";
+        return voiceUrl
+          ? (
+              await this.whisperTool.listen({
+                audioUrl: voiceUrl,
+              })
+            ).data
+          : "";
       } catch (error) {
         return "Error: I can't listen to this voice message.";
       }
@@ -440,7 +388,7 @@ export class Telegraph {
       ctx.message?.reply_to_message?.photo ||
       ctx.message?.reply_to_message?.audio
     ) {
-      const url = fileUrls.pop();
+      const url = fileUrls.shift();
       return [ctx.message?.caption, url].filter(Boolean).join("\n");
     }
     if (ctx.message?.sticker) {

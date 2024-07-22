@@ -8,7 +8,6 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
-import { getCurrentDateTime } from "@packages/shared/time";
 import { ExplorerTool } from "@packages/shared/tools/explorer";
 import { ReminderTool } from "@packages/shared/tools/reminder";
 import { SonataTool } from "@packages/shared/tools/sonata";
@@ -16,26 +15,26 @@ import { StormTool } from "@packages/shared/tools/storm";
 import { CurrentTimeTool } from "@packages/shared/tools/time";
 import { VisionTool } from "@packages/shared/tools/vision";
 import { WhisperTool } from "@packages/shared/tools/whisper";
-import type {
-  IAgent,
-  inputSchema,
-  outputSchema,
+import {
+  type ChatInput,
+  ChatOutput,
+  type IAgent,
 } from "@packages/shared/types/agent";
-import type { chatHistoryArraySchema } from "@packages/shared/types/chat-history";
+import type { ChatHistoryList } from "@packages/shared/types/chat-history";
+import type { AgentSettings } from "@packages/shared/types/settings";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import type { StructuredTool } from "langchain/tools";
-import type { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
   AGENT_SYSTEM_PROMPT: string;
-  AGENT_NAME: string;
-  AGENT_LLM_MODEL: string;
-  AGENT_LLM_MAX_TOKENS: number;
-  AGENT_LLM_TEMPERATURE: number;
-  AGENT_LLM_TOP_P: number;
-  AGENT_LLM_FREQUENCY_PENALTY: number;
-  AGENT_LLM_PRESENCE_PENALTY: number;
+  AGENT_LLM_MODEL: "gpt-4o-mini";
+  AGENT_LLM_MAX_TOKENS: 4096;
+  AGENT_LLM_TEMPERATURE: 0.7;
+  AGENT_LLM_TOP_P: 1;
+  AGENT_LLM_FREQUENCY_PENALTY: 0;
+  AGENT_LLM_PRESENCE_PENALTY: 0;
+
   AISYAH_AI_VISION: Fetcher;
   AISYAH_AI_SONATA: Fetcher;
   AISYAH_AI_WHISPER: Fetcher;
@@ -45,33 +44,35 @@ interface Env {
 }
 
 export class Agent implements IAgent {
-  private readonly name: string;
   private readonly llm: ChatOpenAI;
   private readonly tools: StructuredTool[] = [];
   private readonly systemPrompt: string;
+  private currentTimeTool: CurrentTimeTool;
 
-  constructor(env: Env, user: string) {
+  constructor(env: Env, settings: AgentSettings, user: string) {
     this.llm = new ChatOpenAI({
       apiKey: env.OPENAI_API_KEY,
-      model: env.AGENT_LLM_MODEL,
-      maxTokens: env.AGENT_LLM_MAX_TOKENS,
-      temperature: env.AGENT_LLM_TEMPERATURE,
-      topP: env.AGENT_LLM_TOP_P,
-      frequencyPenalty: env.AGENT_LLM_FREQUENCY_PENALTY,
-      presencePenalty: env.AGENT_LLM_PRESENCE_PENALTY,
+      model: settings.llm?.model || env.AGENT_LLM_MODEL,
+      maxTokens: settings.llm?.maxTokens || env.AGENT_LLM_MAX_TOKENS,
+      temperature: settings.llm?.temperature || env.AGENT_LLM_TEMPERATURE,
+      topP: settings.llm?.topP || env.AGENT_LLM_TOP_P,
+      frequencyPenalty:
+        settings.llm?.frequencyPenalty || env.AGENT_LLM_FREQUENCY_PENALTY,
+      presencePenalty:
+        settings.llm?.presencePenalty || env.AGENT_LLM_PRESENCE_PENALTY,
       user,
     });
-    this.name = env.AGENT_NAME;
-    this.systemPrompt = env.AGENT_SYSTEM_PROMPT;
+    this.systemPrompt = settings.systemPrompt ?? "";
+    this.currentTimeTool = new CurrentTimeTool();
     this.tools.push(
       new Calculator(),
-      new CurrentTimeTool(),
-      new VisionTool(env),
-      new SonataTool(env),
-      new WhisperTool(env),
-      new ReminderTool(env),
-      new StormTool(env),
-      new ExplorerTool(env),
+      this.currentTimeTool,
+      new VisionTool(env.AISYAH_AI_VISION),
+      new SonataTool(env.AISYAH_AI_SONATA),
+      new WhisperTool(env.AISYAH_AI_WHISPER),
+      new ReminderTool(env.AISYAH_AI_VISION),
+      new StormTool(env.AISYAH_AI_STORM),
+      new ExplorerTool(env.AISYAH_AI_EXPLORER),
     );
   }
 
@@ -98,7 +99,7 @@ export class Agent implements IAgent {
   }
 
   private async createChatHistoryMessages(
-    chatHistory: z.infer<typeof chatHistoryArraySchema>,
+    chatHistory: ChatHistoryList,
   ): Promise<BaseMessage[]> {
     const messages: BaseMessage[] = [];
     for (const message of chatHistory) {
@@ -125,9 +126,7 @@ export class Agent implements IAgent {
     return output.replace(regex, "");
   }
 
-  async chat(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>> {
+  async chat(input: ChatInput): Promise<ChatOutput> {
     const { chatId, messageId, senderId, senderName, message, chatHistory } =
       input;
     console.log("Chatting with the following input:", {
@@ -136,6 +135,7 @@ export class Agent implements IAgent {
       senderId,
       senderName,
       message,
+      chatHistory: "<redacted>",
     });
 
     const userInput: BaseMessagePromptTemplateLike = [
@@ -148,7 +148,11 @@ export class Agent implements IAgent {
       .invoke({
         system_message: new SystemMessage(this.systemPrompt),
         current_time: new SystemMessage(
-          `Context: current date-time: ${getCurrentDateTime("Asia/Jakarta")}`,
+          `Context: current date-time: ${this.currentTimeTool.getCurrentDateTime(
+            {
+              timeZone: "Asia/Jakarta",
+            },
+          )}`,
         ),
         chat_id: new SystemMessage(`Context: chatId: ${chatId}`),
         message_id: new SystemMessage(`Context: messageId: ${messageId}`),
@@ -157,6 +161,8 @@ export class Agent implements IAgent {
       })
       .then((response) => this.formatOutput(response.output));
 
-    return { response };
+    return ChatOutput.parse({
+      data: response,
+    });
   }
 }

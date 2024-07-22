@@ -1,13 +1,14 @@
 import { z } from "zod";
 
-export const keyInputSchema = z.string().describe("The key to check.");
+export const IsRateLimitKeyInput = z.string().describe("The key to check.");
 
-export const outputSchema = z
+export const IsRateLimitOutput = z
   .boolean()
   .describe("Whether the key is rate limited.");
 
+export type IsRateLimitKeyInput = z.infer<typeof IsRateLimitKeyInput>;
+export type IsRateLimitOutput = z.infer<typeof IsRateLimitOutput>;
+
 export interface IRateLimit {
-  isRateLimited(
-    key: z.infer<typeof keyInputSchema>,
-  ): Promise<z.infer<typeof outputSchema>>;
+  isRateLimited(key: IsRateLimitKeyInput): Promise<IsRateLimitOutput>;
 }

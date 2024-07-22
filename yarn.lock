@@ -1082,6 +1082,7 @@ __metadata:
     "@langchain/community": "npm:^0.2.19"
     "@langchain/core": "npm:^0.2.17"
     "@langchain/openai": "npm:^0.2.4"
+    hono: "npm:^4.5.1"
     langchain: "npm:^0.2.10"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
@@ -1094,6 +1095,7 @@ __metadata:
   resolution: "aisyah-ai-explorer@workspace:packages/aisyah-ai-explorer"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
+    hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
@@ -1105,6 +1107,7 @@ __metadata:
   resolution: "aisyah-ai-reminder@workspace:packages/aisyah-ai-reminder"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
+    hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
@@ -1118,6 +1121,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
     "@supabase/supabase-js": "npm:^2.44.4"
     elevenlabs: "npm:^0.10.0"
+    hono: "npm:^4.5.1"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
   languageName: unknown
@@ -1128,6 +1132,7 @@ __metadata:
   resolution: "aisyah-ai-storm@workspace:packages/aisyah-ai-storm"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
+    hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
@@ -1140,6 +1145,7 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
     grammy: "npm:^1.27.0"
+    hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
@@ -1151,6 +1157,7 @@ __metadata:
   resolution: "aisyah-ai-vision@workspace:packages/aisyah-ai-vision"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
+    hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
@@ -1162,6 +1169,7 @@ __metadata:
   resolution: "aisyah-ai-whisper@workspace:packages/aisyah-ai-whisper"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240712.0"
+    hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.65.0"
     zod: "npm:^3.23.8"
@@ -1955,6 +1963,13 @@ __metadata:
   dependencies:
     function-bind: "npm:^1.1.2"
   checksum: 10c0/3769d434703b8ac66b209a4cca0737519925bbdb61dd887f93a16372b14694c63ff4e797686d87c90f08168e81082248b9b028bad60d4da9e0d1148766f56eb9
+  languageName: node
+  linkType: hard
+
+"hono@npm:^4.5.1":
+  version: 4.5.1
+  resolution: "hono@npm:4.5.1"
+  checksum: 10c0/71228cefd3808b4bb42c10de23d67f135678eb0ab7fdfd1728d934ec2ee1241be9b1260f279b81acd2a6a57346d06d047a2650ff9bddd48fda6581751a690d80
   languageName: node
   linkType: hard
 

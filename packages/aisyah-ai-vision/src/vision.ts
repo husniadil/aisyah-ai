@@ -1,11 +1,10 @@
-import type {
-  IVision,
-  inputSchema,
-  outputSchema,
+import {
+  type DescribeInput,
+  DescribeOutput,
+  type IVision,
 } from "@packages/shared/types/vision";
 import { OpenAI } from "openai";
 import type { ChatCompletion } from "openai/resources/chat/completions";
-import type { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
@@ -21,9 +20,7 @@ export class Vision implements IVision {
     });
   }
 
-  async describe(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>> {
+  async describe(input: DescribeInput): Promise<DescribeOutput> {
     console.log(
       "Generating description for image with the following input:",
       input,
@@ -32,9 +29,9 @@ export class Vision implements IVision {
     const { imageUrl } = input;
     try {
       const response = await this.generateDescription(imageUrl);
-      return {
-        description: this.extractDescription(imageUrl, response),
-      };
+      return DescribeOutput.parse({
+        data: this.extractDescription(imageUrl, response),
+      });
     } catch (error) {
       console.error("Error generating description for image:", {
         imageUrl: imageUrl,

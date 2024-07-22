@@ -3,10 +3,11 @@
     "**/.yarn": true,
     "**/.pnp.*": true
   },
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.tsdk": "./.yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "editor.formatOnSave": true,
   "prettier.enable": false,
+  "typescript.suggest.autoImports": true,
   "editor.codeActionsOnSave": {
     "quickfix.biome": "explicit",
     "source.organizeImports.biome": "explicit"

@@ -1,11 +1,10 @@
 import {
+  type GetWebContentInput,
+  GetWebContentOutput,
   type IExplorer,
-  type getWebContentInputSchema,
-  getWebContentOutputSchema,
-  type searchGoogleInputSchema,
-  searchGoogleOutputSchema,
+  type SearchGoogleInput,
+  SearchGoogleOutput,
 } from "@packages/shared/types/explorer";
-import type { z } from "zod";
 
 interface Env {
   GOOGLE_SEARCH_API_KEY: string;
@@ -26,9 +25,7 @@ export class Explorer implements IExplorer {
       `${env.JINA_READER_PROXY_BASE_URL}/${url}`;
   }
 
-  async searchGoogle(
-    input: z.infer<typeof searchGoogleInputSchema>,
-  ): Promise<z.infer<typeof searchGoogleOutputSchema>> {
+  async searchGoogle(input: SearchGoogleInput): Promise<SearchGoogleOutput> {
     try {
       console.log("Searching Google with the following input:", input);
 
@@ -39,16 +36,14 @@ export class Explorer implements IExplorer {
       const url = this.createGoogleSearchURL(query);
 
       const response = await fetch(url);
-      return searchGoogleOutputSchema.parse(await response.json());
+      return SearchGoogleOutput.parse(await response.json());
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async getWebContent(
-    input: z.infer<typeof getWebContentInputSchema>,
-  ): Promise<z.infer<typeof getWebContentOutputSchema>> {
+  async getWebContent(input: GetWebContentInput): Promise<GetWebContentOutput> {
     if (!input.url) {
       throw new Error("URL is required.");
     }
@@ -63,7 +58,9 @@ export class Explorer implements IExplorer {
         console.error(message);
         throw new Error(message);
       }
-      return getWebContentOutputSchema.parse(await response.text());
+      return GetWebContentOutput.parse({
+        content: await response.text(),
+      });
     } catch (error) {
       console.error(`Error fetching webpage from ${input.url}:`, error);
       throw error;

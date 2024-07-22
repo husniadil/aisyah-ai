@@ -1,8 +1,13 @@
 import { z } from "zod";
 
-export const keyInputSchema = z.string().describe("The key to acquire.");
+export const LockKeyInput = z.string().describe("The key to acquire.");
+
+export const AcquireOutput = z.boolean().describe("Whether the key is locked.");
+
+export type LockKeyInput = z.infer<typeof LockKeyInput>;
+export type AcquireOutput = z.infer<typeof AcquireOutput>;
 
 export interface ILock {
-  acquire(key: z.infer<typeof keyInputSchema>): Promise<boolean>;
-  release(key: z.infer<typeof keyInputSchema>): Promise<void>;
+  acquire(key: LockKeyInput): Promise<AcquireOutput>;
+  release(key: LockKeyInput): Promise<void>;
 }

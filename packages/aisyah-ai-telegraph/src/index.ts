@@ -1,46 +1,39 @@
 import { sendMessage } from "@packages/shared/telegram";
-import {
-  type inputSchema as agentInputSchema,
-  outputSchema as agentOutputSchema,
-} from "@packages/shared/types/agent";
-import type { z } from "zod";
+import { AgentTool } from "@packages/shared/tools/agent";
+import { TelegraphSettings } from "@packages/shared/types/settings";
+import type { Message, Update } from "grammy/types";
 import { Telegraph } from "./telegraph";
 
-const askAgent = async (
-  env: Env,
-  input: z.infer<typeof agentInputSchema>,
-): Promise<string> => {
-  const response = await env.AISYAH_AI_AGENT.fetch(
-    "https://aisyah-ai-agent.husni-adil-makmur.workers.dev/chat",
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  );
-  return agentOutputSchema.parse(await response.json()).response;
-};
+import { Hono } from "hono";
 
-const handleRemindersApi = async (
-  request: Request<unknown, IncomingRequestCfProperties<unknown>>,
-  env: Env,
-  ctx: ExecutionContext,
-) => {
+const app = new Hono<{ Bindings: Env }>();
+
+app.get("/", (c) => {
+  return c.json({ message: "Hi, I'm Telegraph Worker" });
+});
+
+app.post("/webhooks/telegram/setup", async (c) => {
+  const url = `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/setWebhook?url=${c.req.url.replace("/setup", "")}`;
+  return await fetch(url);
+});
+
+app.post("/webhooks/reminders-api", async (c) => {
   try {
-    const body = (await request.json()) as {
+    const body = (await c.req.json()) as {
       reminders_notified: { title: string }[];
     };
     if (!body.reminders_notified || body.reminders_notified.length === 0) {
-      return new Response("No reminders to handle.\n");
+      return c.json("No reminders to handle.\n");
     }
     const [chatId, topic] = body.reminders_notified[0].title.split(":");
     if (!chatId || !topic) {
-      return new Response("Invalid reminder format.\n");
+      return c.json("Invalid reminder format.\n");
     }
     const question = `Please make an announcement about this now, respond in your language: ${topic}`;
-    const response = await askAgent(env, {
+
+    const agent = new AgentTool(c.env.AISYAH_AI_AGENT);
+
+    const response = await agent.chat({
       chatId,
       messageId: "0",
       senderId: "0",
@@ -48,45 +41,54 @@ const handleRemindersApi = async (
       message: question,
       chatHistory: [],
     });
+
     return await sendMessage({
-      telegramApiBaseUrl: env.TELEGRAM_API_BASE_URL,
-      botToken: env.TELEGRAM_BOT_TOKEN,
+      telegramApiBaseUrl: c.env.TELEGRAM_API_BASE_URL,
+      botToken: c.env.TELEGRAM_BOT_TOKEN,
     })({
       chatId,
-      text: response,
+      text: response.data,
     });
   } catch (error) {
     console.error("Failed to handle reminder:", error);
   }
-};
+  return c.json("OK\n");
+});
 
-export default {
-  async fetch(
-    request: Request<unknown, IncomingRequestCfProperties<unknown>>,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
-    const path = new URL(request.url).pathname;
+app.mount("/webhooks/telegram", async (request, env: Env) => {
+  const input = (await request.clone().json()) as {
+    message: Message | Update.NonChannel;
+  };
+  const chatId = input.message.chat.id.toString();
+  const settings = (await env.SETTINGS.get(chatId)) || "{}";
+  const parsedSettings = TelegraphSettings.parse(JSON.parse(settings));
+  const telegraph = new Telegraph(env, parsedSettings);
+  return await telegraph.start(request);
+});
 
-    if (path === "/webhooks/telegram") {
-      const telegraph = new Telegraph(ctx, env);
-      return telegraph.start(request);
-    }
+app.get("/settings/:key", async (c) => {
+  const key = c.req.param("key");
+  const settings = await c.env.SETTINGS.get(key);
+  return c.json(JSON.parse(settings || "{}"));
+});
 
-    if (path === "/webhooks/telegram/setup") {
-      const url = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/setWebhook?url=${request.url.replace("/setup", "")}`;
-      return await fetch(url);
-    }
+app.post("/settings/:key", async (c) => {
+  try {
+    const key = c.req.param("key");
+    const settings = await c.req.json();
+    const parsedSettings = TelegraphSettings.parse(settings);
+    await c.env.SETTINGS.put(key, JSON.stringify(parsedSettings));
+    return c.json({ message: "Settings saved" });
+  } catch (error) {
+    console.error(error);
+    return c.json({ error }, { status: 400 });
+  }
+});
 
-    if (path === "/webhooks/reminders-api") {
-      try {
-        await handleRemindersApi(request, env, ctx);
-      } catch (error) {
-        console.error(error);
-      }
-      return new Response("OK\n");
-    }
+app.delete("/settings/:key", async (c) => {
+  const key = c.req.param("key");
+  await c.env.SETTINGS.delete(key);
+  return c.json({ message: "Settings deleted" });
+});
 
-    return Response.json({ error: "Not Found" }, { status: 404 });
-  },
-} satisfies ExportedHandler<Env>;
+export default app;

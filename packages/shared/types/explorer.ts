@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const searchGoogleInputSchema = z.object({
+export const SearchGoogleInput = z.object({
   query: z
     .string()
     .optional()
@@ -8,7 +8,7 @@ export const searchGoogleInputSchema = z.object({
   url: z.string().optional().describe("The URL to fetch the content if any."),
 });
 
-export const searchGoogleOutputSchema = z.object({
+export const SearchGoogleOutput = z.object({
   items: z
     .array(
       z.object({
@@ -46,16 +46,15 @@ export const searchGoogleOutputSchema = z.object({
     .describe("The search results."),
 });
 
-export const getWebContentInputSchema = z.object({
+export const GetWebContentInput = z.object({
   url: z.string().optional().describe("The URL to fetch the content."),
 });
 
-export const getWebContentOutputSchema = z
-  .string()
-  .optional()
-  .describe("The content of the URL.");
+export const GetWebContentOutput = z.object({
+  content: z.string().optional().describe("The content of the URL."),
+});
 
-export const searchGoogleAndGetWebContentInputSchema = z.object({
+export const SearchGoogleAndGetWebContentInput = z.object({
   query: z
     .string()
     .optional()
@@ -63,11 +62,22 @@ export const searchGoogleAndGetWebContentInputSchema = z.object({
   url: z.string().optional().describe("The URL to fetch the content if any."),
 });
 
+export const SearchGoogleAndGetWebContentOutput = z.object({
+  data: z.string().optional().describe("The content of the URL."),
+});
+
+export type SearchGoogleInput = z.infer<typeof SearchGoogleInput>;
+export type SearchGoogleOutput = z.infer<typeof SearchGoogleOutput>;
+export type GetWebContentInput = z.infer<typeof GetWebContentInput>;
+export type GetWebContentOutput = z.infer<typeof GetWebContentOutput>;
+export type SearchGoogleAndGetWebContentInput = z.infer<
+  typeof SearchGoogleAndGetWebContentInput
+>;
+export type SearchGoogleAndGetWebContentOutput = z.infer<
+  typeof SearchGoogleAndGetWebContentOutput
+>;
+
 export interface IExplorer {
-  searchGoogle(
-    input: z.infer<typeof searchGoogleInputSchema>,
-  ): Promise<z.infer<typeof searchGoogleOutputSchema>>;
-  getWebContent(
-    input: z.infer<typeof getWebContentInputSchema>,
-  ): Promise<z.infer<typeof getWebContentOutputSchema>>;
+  searchGoogle(input: SearchGoogleInput): Promise<SearchGoogleOutput>;
+  getWebContent(input: GetWebContentInput): Promise<GetWebContentOutput>;
 }

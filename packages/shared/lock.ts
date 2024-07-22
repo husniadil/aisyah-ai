@@ -1,5 +1,5 @@
-import type { ILock } from "@packages/shared/types/lock";
 import { Redis } from "@upstash/redis/cloudflare";
+import type { ILock } from "./types/lock.ts";
 
 interface Env {
   UPSTASH_REDIS_REST_URL: string;

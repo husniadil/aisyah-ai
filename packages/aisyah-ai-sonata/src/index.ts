@@ -1,41 +1,51 @@
-import { inputSchema } from "@packages/shared/types/sonata";
+import { SonataSettings } from "@packages/shared/types/settings";
+import { SpeakInput } from "@packages/shared/types/sonata";
+import { Hono } from "hono";
 import { Sonata } from "./sonata";
 
-async function handlePostRequest(
-  request: Request,
-  env: Env,
-): Promise<Response> {
+const app = new Hono<{ Bindings: Env }>();
+
+app.get("/", (c) => {
+  return c.json({ message: "Hi, I'm Sonata Worker" });
+});
+
+app.post("/speak", async (c) => {
   try {
-    const input = inputSchema.parse(await request.json());
-    const sonata = new Sonata(env);
-    const audioUrl = await sonata.speak(input);
-    return Response.json(audioUrl);
+    const input = SpeakInput.parse(await c.req.json());
+    const settings = (await c.env.SETTINGS.get(input.metadata.chatId)) || "{}";
+    const parsedSettings = SonataSettings.parse(JSON.parse(settings));
+    const sonata = new Sonata(c.env, parsedSettings);
+    const response = await sonata.speak(input);
+    return c.json(response);
   } catch (error) {
     console.error(error);
-    return Response.json({ error: `${error}` }, { status: 400 });
+    return c.json({ error: `${error}` }, { status: 400 });
   }
-}
+});
 
-export default {
-  async fetch(
-    request: Request<unknown, IncomingRequestCfProperties<unknown>>,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
-    const { method, url } = request;
+app.get("/settings/:key", async (c) => {
+  const key = c.req.param("key");
+  const settings = await c.env.SETTINGS.get(key);
+  return c.json(JSON.parse(settings || "{}"));
+});
 
-    if (method === "GET") {
-      return Response.json({ message: "Hi, I'm Sonata Worker" });
-    }
+app.post("/settings/:key", async (c) => {
+  try {
+    const key = c.req.param("key");
+    const settings = await c.req.json();
+    const parsedSettings = SonataSettings.parse(settings);
+    await c.env.SETTINGS.put(key, JSON.stringify(parsedSettings));
+    return c.json({ message: "Settings saved" });
+  } catch (error) {
+    console.error(error);
+    return c.json({ error }, { status: 400 });
+  }
+});
 
-    if (method !== "POST") {
-      return Response.json({ error: "Method Not Allowed" }, { status: 405 });
-    }
+app.delete("/settings/:key", async (c) => {
+  const key = c.req.param("key");
+  await c.env.SETTINGS.delete(key);
+  return c.json({ message: "Settings deleted" });
+});
 
-    if (new URL(url).pathname !== "/speak") {
-      return Response.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    return handlePostRequest(request, env);
-  },
-} satisfies ExportedHandler<Env>;
+export default app;

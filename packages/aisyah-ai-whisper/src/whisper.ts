@@ -1,10 +1,9 @@
-import type {
-  IWhisper,
-  inputSchema,
-  outputSchema,
+import {
+  type IWhisper,
+  type ListenInput,
+  ListenOutput,
 } from "@packages/shared/types/whisper";
 import { OpenAI } from "openai";
-import type { z } from "zod";
 
 interface Env {
   OPENAI_API_KEY: string;
@@ -19,9 +18,7 @@ export class Whisper implements IWhisper {
     });
   }
 
-  async listen(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>> {
+  async listen(input: ListenInput): Promise<ListenOutput> {
     console.log("Transcribing audio from URL with the following input:", input);
 
     const { audioUrl } = input;
@@ -30,7 +27,9 @@ export class Whisper implements IWhisper {
         file: await fetch(audioUrl),
         model: "whisper-1",
       });
-      return transcription;
+      return ListenOutput.parse({
+        data: transcription.text,
+      });
     } catch (error) {
       console.error("Error transcribing audio from URL:", {
         audioUrl,

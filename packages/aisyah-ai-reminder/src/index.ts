@@ -1,41 +1,24 @@
-import { inputSchema } from "@packages/shared/types/reminder";
+import { RemindInput } from "@packages/shared/types/reminder";
+import { Hono } from "hono";
 import { Reminder } from "./reminder";
 
-async function handlePostRequest(
-  request: Request,
-  env: Env,
-): Promise<Response> {
+const app = new Hono<{ Bindings: Env }>();
+
+app.get("/", (c) => {
+  return c.json({ message: "Hi, I'm Reminder Worker!" });
+});
+
+app.post("/remind", async (c) => {
   try {
-    const input = inputSchema.parse(await request.json());
-    const reminder = new Reminder(env);
-    const result = await reminder.remind(input);
-    return Response.json(result);
+    const input = RemindInput.parse(await c.req.json());
+    const reminder = new Reminder(c.env);
+    const response = await reminder.remind(input);
+    console.log("XXX", response);
+    return c.json(response);
   } catch (error) {
     console.error(error);
-    return Response.json({ error: `${error}` }, { status: 400 });
+    return c.json({ error }, { status: 400 });
   }
-}
+});
 
-export default {
-  async fetch(
-    request: Request<unknown, IncomingRequestCfProperties<unknown>>,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
-    const { method, url } = request;
-
-    if (method === "GET") {
-      return Response.json({ message: "Hi, I'm Reminder Worker!" });
-    }
-
-    if (method !== "POST") {
-      return Response.json({ error: "Method Not Allowed" }, { status: 405 });
-    }
-
-    if (new URL(url).pathname !== "/remind") {
-      return Response.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    return handlePostRequest(request, env);
-  },
-} satisfies ExportedHandler<Env>;
+export default app;

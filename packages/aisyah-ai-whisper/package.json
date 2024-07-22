@@ -13,6 +13,7 @@
     "wrangler": "^3.65.0"
   },
   "dependencies": {
+    "hono": "^4.5.1",
     "openai": "^4.52.7",
     "zod": "^3.23.8"
   }

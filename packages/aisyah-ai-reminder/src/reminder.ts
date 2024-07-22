@@ -1,9 +1,8 @@
-import type {
-  IReminder,
-  inputSchema,
-  outputSchema,
+import {
+  type IReminder,
+  type RemindInput,
+  RemindOutput,
 } from "@packages/shared/types/reminder";
-import type { z } from "zod";
 
 interface Env {
   REMINDERS_API_KEY: string;
@@ -14,7 +13,7 @@ interface Env {
 export class Reminder implements IReminder {
   private headers: () => Record<string, string>;
 
-  private withData = (data: z.infer<typeof inputSchema>) => {
+  private withData = (data: RemindInput) => {
     const { chatId, title, date, time, timeZone } = data;
     return new URLSearchParams({
       title: `${chatId}:${title}`,
@@ -24,10 +23,10 @@ export class Reminder implements IReminder {
     });
   };
 
-  private createUrl: (input: z.infer<typeof inputSchema>) => string;
+  private createUrl: (input: RemindInput) => string;
 
   constructor(env: Env) {
-    this.createUrl = (input: z.infer<typeof inputSchema>) =>
+    this.createUrl = (input: RemindInput) =>
       `${env.REMINDERS_BASE_URL}/api/applications/${env.REMINDERS_APP_ID}/reminders/`;
     this.headers = () => ({
       "Content-Type": "application/x-www-form-urlencoded",
@@ -35,9 +34,7 @@ export class Reminder implements IReminder {
     });
   }
 
-  async remind(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>> {
+  async remind(input: RemindInput): Promise<RemindOutput> {
     const { chatId, title, date, time, timeZone } = input;
     console.log("Setting reminder with the following input:", input);
     const url = this.createUrl(input);
@@ -53,7 +50,7 @@ export class Reminder implements IReminder {
         console.error(message);
         throw new Error(message);
       }
-      return await response.json();
+      return RemindOutput.parse(await response.json());
     } catch (error) {
       console.error("Error setting reminder:", error);
       throw error;

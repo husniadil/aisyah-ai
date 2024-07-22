@@ -1,8 +1,7 @@
-import type { z } from "zod";
-import type {
-  IStorm,
-  inputSchema,
-  outputSchema,
+import {
+  type GetWeatherInput,
+  GetWeatherOutput,
+  type IStorm,
 } from "/Users/husni/github.com/husniadil/aisyah-ai/packages/shared/types/storm";
 
 interface Env {
@@ -11,16 +10,14 @@ interface Env {
 }
 
 export class Storm implements IStorm {
-  private createUrl: (input: z.infer<typeof inputSchema>) => string;
+  private createUrl: (input: GetWeatherInput) => string;
 
   constructor(env: Env) {
-    this.createUrl = (input: z.infer<typeof inputSchema>) =>
+    this.createUrl = (input: GetWeatherInput) =>
       `${env.OPEN_WEATHER_MAP_BASE_URL}/data/2.5/weather?q=${input.city}&appid=${env.OPEN_WEATHER_MAP_API_KEY}&units=${input.unit}`;
   }
 
-  async predict(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>> {
+  async predict(input: GetWeatherInput): Promise<GetWeatherOutput> {
     console.log("Fetching weather data with the following input:", input);
 
     const { city, unit } = input;
@@ -32,7 +29,7 @@ export class Storm implements IStorm {
         console.error(message);
         throw new Error(message);
       }
-      return (await response.json()) as z.infer<typeof outputSchema>;
+      return GetWeatherOutput.parse(await response.json());
     } catch (error) {
       console.error("Failed to fetch weather data:", error);
       throw error;

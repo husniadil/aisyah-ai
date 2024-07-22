@@ -1,15 +1,15 @@
 import type * as stream from "node:stream";
-import type {
-  ISonata,
-  inputSchema,
-  outputSchema,
+import type { SonataSettings } from "@packages/shared/types/settings";
+import {
+  type ISonata,
+  type SpeakInput,
+  SpeakOutput,
 } from "@packages/shared/types/sonata";
 import {
   type SupabaseClient,
   createClient as createSupabaseClient,
 } from "@supabase/supabase-js";
 import { ElevenLabsClient } from "elevenlabs";
-import type { z } from "zod";
 
 interface Env {
   ELEVENLABS_API_KEY: string;
@@ -33,7 +33,7 @@ export class Sonata implements ISonata {
 
   private getPublicUrl: (path: string) => Promise<string | undefined>;
 
-  constructor(env: Env) {
+  constructor(env: Env, settings: SonataSettings) {
     this.elevenLabsClient = new ElevenLabsClient({
       apiKey: env.ELEVENLABS_API_KEY,
     });
@@ -45,7 +45,7 @@ export class Sonata implements ISonata {
     this.generateAudio = async (text: string) =>
       await this.elevenLabsClient.generate({
         model_id: env.ELEVENLABS_VOICE_MODEL_ID,
-        voice: env.ELEVENLABS_VOICE_NAME,
+        voice: settings.voice || env.ELEVENLABS_VOICE_NAME,
         text: text,
       });
 
@@ -84,9 +84,7 @@ export class Sonata implements ISonata {
     };
   }
 
-  async speak(
-    input: z.infer<typeof inputSchema>,
-  ): Promise<z.infer<typeof outputSchema>> {
+  async speak(input: SpeakInput): Promise<SpeakOutput> {
     console.log("Generating audio for text with the following input:", input);
 
     const { text, metadata } = input;
@@ -97,16 +95,16 @@ export class Sonata implements ISonata {
         (_error) => undefined,
       );
       if (audioUrl) {
-        return {
-          audioUrl,
-        };
+        return SpeakOutput.parse({
+          data: audioUrl,
+        });
       }
 
       const audio = await this.generateAudio(text);
       const response = await this.uploadAudio(uploadPath, audio);
-      return {
-        audioUrl: await this.getPublicUrl(response.path),
-      };
+      return SpeakOutput.parse({
+        data: await this.getPublicUrl(response.path),
+      });
     } catch (error) {
       console.error("Error generating audio for text with metadata:", {
         text,

@@ -1,27 +1,27 @@
 import { z } from "zod";
 
-export const chatHistorySchema = z.object({
+export const ChatHistory = z.object({
   senderName: z.string().describe("The name of the sender"),
   type: z.enum(["human", "ai"]).describe("The type of the sender"),
   message: z.string().describe("The message sent by the sender"),
   timestamp: z.string().describe("The timestamp of the message"),
 });
 
-export const chatHistoryArraySchema = z.array(chatHistorySchema);
+export const ChatHistoryList = z.array(ChatHistory);
 
-export const keyInputSchema = z
+export const ChatHistoryKeyInput = z
   .string()
   .describe("The key to store the chat history");
 
+export type ChatHistory = z.infer<typeof ChatHistory>;
+export type ChatHistoryList = z.infer<typeof ChatHistoryList>;
+export type ChatHistoryKeyInput = z.infer<typeof ChatHistoryKeyInput>;
+
 export interface IChatHistory {
   append(
-    key: z.infer<typeof keyInputSchema>,
-    ...messages: z.infer<typeof chatHistoryArraySchema>
-  ): Promise<z.infer<typeof chatHistoryArraySchema>>;
-  get(
-    key: z.infer<typeof keyInputSchema>,
-  ): Promise<z.infer<typeof chatHistoryArraySchema>>;
-  clear(
-    key: z.infer<typeof keyInputSchema>,
-  ): Promise<z.infer<typeof chatHistoryArraySchema>>;
+    key: ChatHistoryKeyInput,
+    ...messages: ChatHistoryList
+  ): Promise<ChatHistoryList>;
+  get(key: ChatHistoryKeyInput): Promise<ChatHistoryList>;
+  clear(key: ChatHistoryKeyInput): Promise<ChatHistoryList>;
 }

@@ -1,41 +1,23 @@
-import { inputSchema } from "@packages/shared/types/vision";
+import { DescribeInput } from "@packages/shared/types/vision";
+import { Hono } from "hono";
 import { Vision } from "./vision";
 
-async function handlePostRequest(
-  request: Request,
-  env: Env,
-): Promise<Response> {
+const app = new Hono<{ Bindings: Env }>();
+
+app.get("/", (c) => {
+  return c.json({ message: "Hi, I'm Vision Worker" });
+});
+
+app.post("/describe", async (c) => {
   try {
-    const input = inputSchema.parse(await request.json());
-    const vision = new Vision(env);
-    const description = await vision.describe(input);
-    return Response.json(description);
+    const input = DescribeInput.parse(await c.req.json());
+    const vision = new Vision(c.env);
+    const response = await vision.describe(input);
+    return c.json(response);
   } catch (error) {
     console.error(error);
-    return Response.json({ error: `${error}` }, { status: 400 });
+    return c.json({ error: `${error}` }, { status: 400 });
   }
-}
+});
 
-export default {
-  async fetch(
-    request: Request<unknown, IncomingRequestCfProperties<unknown>>,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
-    const { method, url } = request;
-
-    if (method === "GET") {
-      return Response.json({ message: "Hi, I'm Vision Worker" });
-    }
-
-    if (method !== "POST") {
-      return Response.json({ error: "Method Not Allowed" }, { status: 405 });
-    }
-
-    if (new URL(url).pathname !== "/describe") {
-      return Response.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    return handlePostRequest(request, env);
-  },
-} satisfies ExportedHandler<Env>;
+export default app;

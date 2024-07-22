@@ -184,6 +184,7 @@ export class Telegraph {
       if (!(await this.shouldBotRespond(ctx))) {
         return;
       }
+      await ctx.replyWithChatAction("typing");
       await this.trackInteractions(
         ctx.message?.chat?.id.toString() ?? "",
         ctx.message?.from?.id.toString() ?? "",

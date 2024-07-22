@@ -70,7 +70,7 @@ export class Agent implements IAgent {
       new VisionTool(env.AISYAH_AI_VISION),
       new SonataTool(env.AISYAH_AI_SONATA),
       new WhisperTool(env.AISYAH_AI_WHISPER),
-      new ReminderTool(env.AISYAH_AI_VISION),
+      new ReminderTool(env.AISYAH_AI_REMINDER),
       new StormTool(env.AISYAH_AI_STORM),
       new ExplorerTool(env.AISYAH_AI_EXPLORER),
     );

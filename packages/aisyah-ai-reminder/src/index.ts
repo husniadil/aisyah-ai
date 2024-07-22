@@ -13,7 +13,6 @@ app.post("/remind", async (c) => {
     const input = RemindInput.parse(await c.req.json());
     const reminder = new Reminder(c.env);
     const response = await reminder.remind(input);
-    console.log("XXX", response);
     return c.json(response);
   } catch (error) {
     console.error(error);

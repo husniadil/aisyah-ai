@@ -62,7 +62,7 @@ export class Agent implements IAgent {
         settings.llm?.presencePenalty || env.AGENT_LLM_PRESENCE_PENALTY,
       user,
     });
-    this.systemPrompt = settings.systemPrompt ?? "";
+    this.systemPrompt = settings.systemPrompt ?? env.AGENT_SYSTEM_PROMPT;
     this.currentTimeTool = new CurrentTimeTool();
     this.tools.push(
       new Calculator(),

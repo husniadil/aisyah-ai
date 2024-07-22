@@ -16,7 +16,8 @@ export class Reminder implements IReminder {
   private withData = (data: RemindInput) => {
     const { chatId, title, date, time, timeZone } = data;
     return new URLSearchParams({
-      title: `${chatId}:${title}`,
+      title: title,
+      notes: chatId,
       date_tz: date,
       time_tz: time,
       timezone: timeZone,

@@ -20,16 +20,17 @@ app.post("/webhooks/telegram/setup", async (c) => {
 app.post("/webhooks/reminders-api", async (c) => {
   try {
     const body = (await c.req.json()) as {
-      reminders_notified: { title: string }[];
+      reminders_notified: { title: string; notes: string }[];
     };
     if (!body.reminders_notified || body.reminders_notified.length === 0) {
       return c.json("No reminders to handle.\n");
     }
-    const [chatId, topic] = body.reminders_notified[0].title.split(":");
+    const topic = body.reminders_notified[0].title;
+    const chatId = body.reminders_notified[0].notes;
     if (!chatId || !topic) {
       return c.json("Invalid reminder format.\n");
     }
-    const question = `Please make an announcement about this now, respond in your language: ${topic}`;
+    const question = `Tolong buatkan himbauan tentang ini sekarang, respon dengan gaya bicaramu: ${topic}`;
 
     const agent = new AgentTool(c.env.AISYAH_AI_AGENT);
 

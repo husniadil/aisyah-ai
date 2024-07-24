@@ -29,6 +29,16 @@ export class SettingsManager {
     this.sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
   }
 
+  getCurrentSettings = () => this.currentSettings;
+
+  async saveSetting(key: string, data: string) {
+    const newSettings = this.updateSettings(this.currentSettings, data);
+    const { agent, sonata, telegraph } = newSettings;
+    await this.SETTINGS.put(key, JSON.stringify(telegraph));
+    await this.agentTool.setSettings(key, agent);
+    await this.sonataTool.setSettings(key, sonata);
+  }
+
   private getSchema(path: string[]): z.ZodTypeAny | null {
     let schema: z.ZodTypeAny | null = Settings;
     for (const key of path) {
@@ -95,15 +105,5 @@ export class SettingsManager {
 
     const newSettings = { ...settings };
     return this.setValue(newSettings, path, value);
-  }
-
-  getCurrentSettings = () => this.currentSettings;
-
-  async saveSetting(key: string, data: string) {
-    const newSettings = this.updateSettings(this.currentSettings, data);
-    const { agent, sonata, telegraph } = newSettings;
-    await this.SETTINGS.put(key, JSON.stringify(telegraph));
-    await this.agentTool.setSettings(key, agent);
-    await this.sonataTool.setSettings(key, sonata);
   }
 }

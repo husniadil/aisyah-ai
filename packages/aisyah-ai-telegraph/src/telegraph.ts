@@ -125,7 +125,7 @@ export class Telegraph {
     );
   }
 
-  async handleCommand(ctx: Context, command: string): Promise<void> {
+  private async handleCommand(ctx: Context, command: string): Promise<void> {
     try {
       await this.handleRateLimit(ctx);
       await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
@@ -222,7 +222,7 @@ export class Telegraph {
     });
   }
 
-  async handleMessage(ctx: Context): Promise<void> {
+  private async handleMessage(ctx: Context): Promise<void> {
     console.log(ctx.message);
     try {
       console.log("Handling message:", ctx.message);
@@ -498,12 +498,15 @@ export class Telegraph {
     return ctx.message?.text || "";
   }
 
-  async trackInteractions(chatId: string, senderId: string): Promise<void> {
+  private async trackInteractions(
+    chatId: string,
+    senderId: string,
+  ): Promise<void> {
     const key = `${chatId}:${senderId}`;
     await this.recentInteractions.put(key, "", { expirationTtl: 5 * 60 });
   }
 
-  async isRecentlyInteracted(
+  private async isRecentlyInteracted(
     chatId: string,
     senderId: string,
   ): Promise<boolean> {

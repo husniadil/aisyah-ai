@@ -16,8 +16,12 @@ import type { ChatHistoryList } from "@packages/shared/types/chat-history";
 import type { Settings } from "@packages/shared/types/settings";
 import { Bot, type Context, webhookCallback } from "grammy";
 import type { UserFromGetMe } from "grammy/types";
+import { createKeyboard } from "./inline-keyboard";
+import {
+  type ComposeMessageInput,
+  ComposeMessageOutput,
+} from "./message-output";
 import { SettingsManager } from "./settings";
-import { type ComposeMessageInput, ComposeMessageOutput } from "./util";
 
 interface Env {
   AISYAH_AI_AGENT: Fetcher;
@@ -180,7 +184,10 @@ export class Telegraph {
     );
 
     this.bot.command("settings", async (ctx) => {
-      const { keyboard } = this.settingsManager.createKeyboard("settings");
+      const { keyboard } = createKeyboard(
+        "settings",
+        this.settingsManager.getCurrentSettings(),
+      );
       await ctx.reply("⚙️ Settings", { reply_markup: keyboard });
     });
 
@@ -192,7 +199,10 @@ export class Telegraph {
         await ctx.answerCallbackQuery();
         return;
       }
-      const { keyboard, hasMenu } = this.settingsManager.createKeyboard(data);
+      const { keyboard, hasMenu } = createKeyboard(
+        data,
+        this.settingsManager.getCurrentSettings(),
+      );
       if (hasMenu) {
         const message = "⚙️ Settings";
         await ctx.editMessageText(message, { reply_markup: keyboard });

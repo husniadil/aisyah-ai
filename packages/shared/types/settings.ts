@@ -27,6 +27,7 @@ export const AgentSettings = z.object({
         .describe("The model"),
       temperature: z
         .nativeEnum({
+          "[0.0]": 0,
           "[0.1]": 0.1,
           "[0.2]": 0.2,
           "[0.3]": 0.3,
@@ -51,6 +52,7 @@ export const AgentSettings = z.object({
         .describe("The maximum tokens"),
       topP: z
         .nativeEnum({
+          "[0.0]": 0,
           "[0.1]": 0.1,
           "[0.2]": 0.2,
           "[0.3]": 0.3,
@@ -66,6 +68,7 @@ export const AgentSettings = z.object({
         .describe("The top P"),
       frequencyPenalty: z
         .nativeEnum({
+          "[0.0]": 0,
           "[0.1]": 0.1,
           "[0.2]": 0.2,
           "[0.3]": 0.3,
@@ -81,6 +84,7 @@ export const AgentSettings = z.object({
         .describe("The frequency penalty"),
       presencePenalty: z
         .nativeEnum({
+          "[0.0]": 0,
           "[0.1]": 0.1,
           "[0.2]": 0.2,
           "[0.3]": 0.3,

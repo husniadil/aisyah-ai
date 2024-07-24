@@ -1,3 +1,4 @@
+import type { ExecutionContext } from "@cloudflare/workers-types";
 import { UpstashRedisChatHistory } from "@packages/shared/chat-history";
 import { UpstashRedisLock } from "@packages/shared/lock";
 import { UpstashRedisRateLimit } from "@packages/shared/rate-limit";
@@ -29,6 +30,7 @@ interface Env {
   UPSTASH_REDIS_REST_TOKEN: string;
   CHAT_HISTORY_LIMIT: number;
   RECENT_INTERACTIONS: KVNamespace;
+  SETTINGS: KVNamespace<string>;
 }
 
 export class Telegraph {
@@ -42,7 +44,6 @@ export class Telegraph {
   private rateLimit: UpstashRedisRateLimit;
   private lock: UpstashRedisLock;
   private recentInteractions: KVNamespace;
-  private settings: Settings;
   private settingsManager: SettingsManager;
 
   constructor(ctx: ExecutionContext, env: Env, settings: Settings) {
@@ -63,8 +64,7 @@ export class Telegraph {
     this.rateLimit = new UpstashRedisRateLimit(env);
     this.lock = new UpstashRedisLock(env);
     this.recentInteractions = env.RECENT_INTERACTIONS;
-    this.settings = settings;
-    this.settingsManager = new SettingsManager(settings);
+    this.settingsManager = new SettingsManager(env, settings);
 
     this.initializeCommands();
     this.initializeMessageHandlers(ctx);
@@ -168,17 +168,7 @@ export class Telegraph {
     this.bot.command(
       "help",
       async (ctx) =>
-        await this.handleCommand(
-          ctx,
-          [
-            "Tell me with natural response about your available commands:",
-            "- /start: Start a conversation with me.",
-            "- /description: I will tell you about myself.",
-            "- /forget: Forget our conversation history.",
-            "- /help: Show available commands.",
-            "- /privacy: Reassure me that my data is safe when we chat.",
-          ].join("\n"),
-        ),
+        await this.handleCommand(ctx, "Let me know what you can do for me."),
     );
     this.bot.command(
       "privacy",
@@ -195,6 +185,7 @@ export class Telegraph {
     });
 
     this.bot.on("callback_query:data", async (ctx) => {
+      console.log(ctx.callbackQuery);
       const data = ctx.callbackQuery.data;
       if (data === "ㄨ") {
         await ctx.deleteMessage();
@@ -202,9 +193,22 @@ export class Telegraph {
         return;
       }
       const { keyboard, hasMenu } = this.settingsManager.createKeyboard(data);
-      const message = hasMenu ? "⚙️ Settings" : "✅ Settings updated";
-      await ctx.editMessageText(message, { reply_markup: keyboard });
-      await ctx.answerCallbackQuery({ text: "Settings updated" });
+      if (hasMenu) {
+        const message = "⚙️ Settings";
+        await ctx.editMessageText(message, { reply_markup: keyboard });
+        await ctx.answerCallbackQuery();
+        return;
+      }
+      try {
+        const chatId = ctx.callbackQuery.message?.chat.id.toString() ?? "";
+        await this.settingsManager.saveSetting(chatId, data);
+        const message = "✅ Settings updated";
+        await ctx.editMessageText(message, { reply_markup: keyboard });
+        await ctx.answerCallbackQuery({ text: "Settings updated" });
+      } catch (error) {
+        console.error(error);
+        await ctx.answerCallbackQuery({ text: "Failed to update settings" });
+      }
     });
   }
 

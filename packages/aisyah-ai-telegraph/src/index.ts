@@ -1,12 +1,27 @@
 import { sendMessage } from "@packages/shared/telegram";
 import { AgentTool } from "@packages/shared/tools/agent";
 import { SonataTool } from "@packages/shared/tools/sonata";
-import { TelegraphSettings } from "@packages/shared/types/settings";
+import { Settings, TelegraphSettings } from "@packages/shared/types/settings";
 import { AuthInput, MessageInput } from "@packages/shared/types/telegram";
 import type { Message, Update } from "grammy/types";
 import { Telegraph } from "./telegraph";
 
 import { Hono } from "hono";
+
+const getSettings = async (env: Env, chatId: string) => {
+  const telegraphSettings = TelegraphSettings.parse(
+    JSON.parse((await env.SETTINGS.get(chatId)) || "{}"),
+  );
+  const agentTool = new AgentTool(env.AISYAH_AI_AGENT);
+  const agentSettings = await agentTool.getSettings(chatId);
+  const sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
+  const sonataSettings = await sonataTool.getSettings(chatId);
+  return {
+    telegraph: telegraphSettings,
+    agent: agentSettings,
+    sonata: sonataSettings,
+  };
+};
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -18,7 +33,8 @@ app.get("/", async (c) => {
 
 app.post("/webhooks/telegram/setup", async (c) => {
   const url = `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/setWebhook?url=${c.req.url.replace("/setup", "")}`;
-  return await fetch(url);
+  await fetch(url);
+  return c.json({ message: "Webhook setup done" });
 });
 
 app.post("/webhooks/reminders-api", async (c) => {
@@ -78,23 +94,13 @@ app.mount(
         return new Response();
       }
 
-      const telegraphSettings = TelegraphSettings.parse(
-        JSON.parse((await env.SETTINGS.get(chatId)) || "{}"),
-      );
-      const agentTool = new AgentTool(env.AISYAH_AI_AGENT);
-      const agentSettings = await agentTool.getSettings(chatId);
-      const sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
-      const sonataSettings = await sonataTool.getSettings(chatId);
-
-      const telegraph = new Telegraph(ctx, env, {
-        telegraph: telegraphSettings,
-        agent: agentSettings,
-        sonata: sonataSettings,
-      });
-
+      const telegraph = new Telegraph(ctx, env, await getSettings(env, chatId));
       return await telegraph.start(request);
     } catch (error) {
-      console.error("Failed to handle telegram webhook:", error);
+      console.error(
+        "Failed to handle telegram webhook:",
+        JSON.parse(error as string),
+      );
       return new Response();
     }
   },
@@ -102,16 +108,29 @@ app.mount(
 
 app.get("/settings/:key", async (c) => {
   const key = c.req.param("key");
-  const settings = await c.env.SETTINGS.get(key);
-  return c.json(JSON.parse(settings || "{}"));
+  const settings = await getSettings(c.env, key);
+  return c.json(settings);
 });
 
 app.post("/settings/:key", async (c) => {
   try {
     const key = c.req.param("key");
-    const settings = await c.req.json();
-    const parsedSettings = TelegraphSettings.parse(settings);
-    await c.env.SETTINGS.put(key, JSON.stringify(parsedSettings));
+
+    const settings = Settings.parse(await c.req.json());
+    if (settings.telegraph) {
+      await c.env.SETTINGS.put(key, JSON.stringify(settings.telegraph));
+    }
+
+    if (settings.agent) {
+      const agentTool = new AgentTool(c.env.AISYAH_AI_AGENT);
+      await agentTool.setSettings(key, settings.agent);
+    }
+
+    if (settings.sonata) {
+      const sonataTool = new SonataTool(c.env.AISYAH_AI_SONATA);
+      await sonataTool.setSettings(key, settings.sonata);
+    }
+
     return c.json({ message: "Settings saved" });
   } catch (error) {
     console.error(error);
@@ -122,6 +141,10 @@ app.post("/settings/:key", async (c) => {
 app.delete("/settings/:key", async (c) => {
   const key = c.req.param("key");
   await c.env.SETTINGS.delete(key);
+  const agentTool = new AgentTool(c.env.AISYAH_AI_AGENT);
+  await agentTool.clearSettings(key);
+  const sonataTool = new SonataTool(c.env.AISYAH_AI_SONATA);
+  await sonataTool.clearSettings(key);
   return c.json({ message: "Settings deleted" });
 });
 

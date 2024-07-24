@@ -33,6 +33,7 @@ app.post("/settings/:key", async (c) => {
   try {
     const key = c.req.param("key");
     const settings = await c.req.json();
+    console.log(settings);
     const parsedSettings = SonataSettings.parse(settings);
     await c.env.SETTINGS.put(key, JSON.stringify(parsedSettings));
     return c.json({ message: "Settings saved" });

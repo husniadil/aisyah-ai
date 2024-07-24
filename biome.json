@@ -41,9 +41,7 @@
       "node_modules",
       ".yarn",
       ".wrangler",
-      "worker-configuration.d.ts",
-      ".pnp.cjs",
-      ".pnp.loader.mjs"
+      "worker-configuration.d.ts"
     ]
   }
 }

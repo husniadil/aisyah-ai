@@ -2,8 +2,12 @@ import { z } from "zod";
 
 export const TelegraphSettings = z.object({
   chatHistoryLimit: z
-    .number()
-    .int()
+    .nativeEnum({
+      "none: 0": 0,
+      "short: 5": 5,
+      "medium: 10": 10,
+      "long: 20": 20,
+    })
     .optional()
     .describe("The chat history limit"),
 });
@@ -21,11 +25,75 @@ export const AgentSettings = z.object({
         .optional()
         .default("gpt-4o-mini")
         .describe("The model"),
-      temperature: z.number().optional().describe("The temperature"),
-      maxTokens: z.number().optional().describe("The maximum tokens"),
-      topP: z.number().optional().describe("The top P"),
-      frequencyPenalty: z.number().optional().describe("The frequency penalty"),
-      presencePenalty: z.number().optional().describe("The presence penalty"),
+      temperature: z
+        .nativeEnum({
+          "[0.1]": 0.1,
+          "[0.2]": 0.2,
+          "[0.3]": 0.3,
+          "[0.4]": 0.4,
+          "[0.5]": 0.5,
+          "[0.6]": 0.6,
+          "[0.7]": 0.7,
+          "[0.8]": 0.8,
+          "[0.9]": 0.9,
+          "[1.0]": 1,
+        })
+        .optional()
+        .describe("The temperature"),
+      maxTokens: z
+        .nativeEnum({
+          "none: 0": 0,
+          "short: 1024": 1024,
+          "medium: 4096": 4096,
+          "long: 16384": 16384,
+        })
+        .optional()
+        .describe("The maximum tokens"),
+      topP: z
+        .nativeEnum({
+          "[0.1]": 0.1,
+          "[0.2]": 0.2,
+          "[0.3]": 0.3,
+          "[0.4]": 0.4,
+          "[0.5]": 0.5,
+          "[0.6]": 0.6,
+          "[0.7]": 0.7,
+          "[0.8]": 0.8,
+          "[0.9]": 0.9,
+          "[1.0]": 1,
+        })
+        .optional()
+        .describe("The top P"),
+      frequencyPenalty: z
+        .nativeEnum({
+          "[0.1]": 0.1,
+          "[0.2]": 0.2,
+          "[0.3]": 0.3,
+          "[0.4]": 0.4,
+          "[0.5]": 0.5,
+          "[0.6]": 0.6,
+          "[0.7]": 0.7,
+          "[0.8]": 0.8,
+          "[0.9]": 0.9,
+          "[1.0]": 1,
+        })
+        .optional()
+        .describe("The frequency penalty"),
+      presencePenalty: z
+        .nativeEnum({
+          "[0.1]": 0.1,
+          "[0.2]": 0.2,
+          "[0.3]": 0.3,
+          "[0.4]": 0.4,
+          "[0.5]": 0.5,
+          "[0.6]": 0.6,
+          "[0.7]": 0.7,
+          "[0.8]": 0.8,
+          "[0.9]": 0.9,
+          "[1.0]": 1,
+        })
+        .optional()
+        .describe("The presence penalty"),
     })
     .optional()
     .describe("The LLM settings"),
@@ -56,9 +124,16 @@ export const SonataSettings = z.object({
     .describe("The voice"),
 });
 
+export const Settings = z.object({
+  telegraph: TelegraphSettings.describe("The Telegraph settings"),
+  agent: AgentSettings.describe("The Agent settings"),
+  sonata: SonataSettings.describe("The Sonata settings"),
+});
+
 export type TelegraphSettings = z.infer<typeof TelegraphSettings>;
 export type AgentSettings = z.infer<typeof AgentSettings>;
 export type SonataSettings = z.infer<typeof SonataSettings>;
+export type Settings = z.infer<typeof Settings>;
 
 export interface ISettings<
   T extends TelegraphSettings | AgentSettings | SonataSettings,

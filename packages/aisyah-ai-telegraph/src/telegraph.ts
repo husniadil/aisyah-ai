@@ -12,9 +12,10 @@ import { SonataTool } from "@packages/shared/tools/sonata";
 import { CurrentTimeTool } from "@packages/shared/tools/time";
 import { WhisperTool } from "@packages/shared/tools/whisper";
 import type { ChatHistoryList } from "@packages/shared/types/chat-history";
-import type { TelegraphSettings } from "@packages/shared/types/settings";
+import type { Settings } from "@packages/shared/types/settings";
 import { Bot, type Context, webhookCallback } from "grammy";
 import type { UserFromGetMe } from "grammy/types";
+import { SettingsManager } from "./settings";
 import { type ComposeMessageInput, ComposeMessageOutput } from "./util";
 
 interface Env {
@@ -41,24 +42,29 @@ export class Telegraph {
   private rateLimit: UpstashRedisRateLimit;
   private lock: UpstashRedisLock;
   private recentInteractions: KVNamespace;
+  private settings: Settings;
+  private settingsManager: SettingsManager;
 
-  constructor(ctx: ExecutionContext, env: Env, settings: TelegraphSettings) {
-    this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
-      botInfo: JSON.parse(env.TELEGRAM_BOT_INFO) as UserFromGetMe,
-    });
+  constructor(ctx: ExecutionContext, env: Env, settings: Settings) {
     this.agentTool = new AgentTool(env.AISYAH_AI_AGENT);
     this.whisperTool = new WhisperTool(env.AISYAH_AI_WHISPER);
     this.sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
     this.currentTimeTool = new CurrentTimeTool();
 
-    this.recentInteractions = env.RECENT_INTERACTIONS;
+    this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {
+      botInfo: JSON.parse(env.TELEGRAM_BOT_INFO) as UserFromGetMe,
+    });
     this.chatHistory = new UpstashRedisChatHistory({
       UPSTASH_REDIS_REST_URL: env.UPSTASH_REDIS_REST_URL,
       UPSTASH_REDIS_REST_TOKEN: env.UPSTASH_REDIS_REST_TOKEN,
-      CHAT_HISTORY_LIMIT: settings.chatHistoryLimit || env.CHAT_HISTORY_LIMIT,
+      CHAT_HISTORY_LIMIT:
+        settings.telegraph.chatHistoryLimit || env.CHAT_HISTORY_LIMIT,
     });
-    this.lock = new UpstashRedisLock(env);
     this.rateLimit = new UpstashRedisRateLimit(env);
+    this.lock = new UpstashRedisLock(env);
+    this.recentInteractions = env.RECENT_INTERACTIONS;
+    this.settings = settings;
+    this.settingsManager = new SettingsManager(settings);
 
     this.initializeCommands();
     this.initializeMessageHandlers(ctx);
@@ -159,10 +165,51 @@ export class Telegraph {
       }
       return await ctx.reply("----- 👌 💬 ❌ 👍 -----");
     });
+    this.bot.command(
+      "help",
+      async (ctx) =>
+        await this.handleCommand(
+          ctx,
+          [
+            "Tell me with natural response about your available commands:",
+            "- /start: Start a conversation with me.",
+            "- /description: I will tell you about myself.",
+            "- /forget: Forget our conversation history.",
+            "- /help: Show available commands.",
+            "- /privacy: Reassure me that my data is safe when we chat.",
+          ].join("\n"),
+        ),
+    );
+    this.bot.command(
+      "privacy",
+      async (ctx) =>
+        await this.handleCommand(
+          ctx,
+          "Please reassure me that my data is safe when we chat.",
+        ),
+    );
+
+    this.bot.command("settings", async (ctx) => {
+      const { keyboard } = this.settingsManager.createKeyboard("settings");
+      await ctx.reply("⚙️ Settings", { reply_markup: keyboard });
+    });
+
+    this.bot.on("callback_query:data", async (ctx) => {
+      const data = ctx.callbackQuery.data;
+      if (data === "ㄨ") {
+        await ctx.deleteMessage();
+        await ctx.answerCallbackQuery();
+        return;
+      }
+      const { keyboard, hasMenu } = this.settingsManager.createKeyboard(data);
+      const message = hasMenu ? "⚙️ Settings" : "✅ Settings updated";
+      await ctx.editMessageText(message, { reply_markup: keyboard });
+      await ctx.answerCallbackQuery({ text: "Settings updated" });
+    });
   }
 
   async handleMessage(ctx: Context): Promise<void> {
-    ctx.message;
+    console.log(ctx.message);
     try {
       console.log("Handling message:", ctx.message);
 
@@ -280,9 +327,11 @@ export class Telegraph {
   }
 
   private initializeMessageHandlers(executionContext: ExecutionContext) {
-    this.bot.on("message", async (ctx) =>
-      executionContext.waitUntil(this.handleMessage(ctx)),
-    );
+    this.bot.on("message", async (ctx) => {
+      if (ctx.message?.chat?.id) {
+        executionContext.waitUntil(this.handleMessage(ctx));
+      }
+    });
   }
 
   private getSenderName(ctx: Context): string {

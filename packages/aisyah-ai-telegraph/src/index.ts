@@ -1,5 +1,6 @@
 import { sendMessage } from "@packages/shared/telegram";
 import { AgentTool } from "@packages/shared/tools/agent";
+import { SonataTool } from "@packages/shared/tools/sonata";
 import { TelegraphSettings } from "@packages/shared/types/settings";
 import { AuthInput, MessageInput } from "@packages/shared/types/telegram";
 import type { Message, Update } from "grammy/types";
@@ -9,8 +10,10 @@ import { Hono } from "hono";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get("/", (c) => {
-  return c.json({ message: "Hi, I'm Telegraph Worker" });
+app.get("/", async (c) => {
+  return c.json({
+    message: "Hi, I'm Telegraph Worker",
+  });
 });
 
 app.post("/webhooks/telegram/setup", async (c) => {
@@ -61,14 +64,39 @@ app.post("/webhooks/reminders-api", async (c) => {
 app.mount(
   "/webhooks/telegram",
   async (request, env: Env, ctx: ExecutionContext) => {
-    const input = (await request.clone().json()) as {
-      message: Message | Update.NonChannel;
-    };
-    const chatId = input.message.chat.id.toString();
-    const settings = (await env.SETTINGS.get(chatId)) || "{}";
-    const parsedSettings = TelegraphSettings.parse(JSON.parse(settings));
-    const telegraph = new Telegraph(ctx, env, parsedSettings);
-    return await telegraph.start(request);
+    try {
+      const input = (await request.clone().json()) as {
+        message?: Message | Update.NonChannel;
+        callback_query?: {
+          message?: Message | Update.NonChannel;
+        };
+      };
+      const chatId =
+        input.message?.chat.id.toString() ||
+        input.callback_query?.message?.chat.id.toString();
+      if (!chatId) {
+        return new Response();
+      }
+
+      const telegraphSettings = TelegraphSettings.parse(
+        JSON.parse((await env.SETTINGS.get(chatId)) || "{}"),
+      );
+      const agentTool = new AgentTool(env.AISYAH_AI_AGENT);
+      const agentSettings = await agentTool.getSettings(chatId);
+      const sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
+      const sonataSettings = await sonataTool.getSettings(chatId);
+
+      const telegraph = new Telegraph(ctx, env, {
+        telegraph: telegraphSettings,
+        agent: agentSettings,
+        sonata: sonataSettings,
+      });
+
+      return await telegraph.start(request);
+    } catch (error) {
+      console.error("Failed to handle telegram webhook:", error);
+      return new Response();
+    }
   },
 );
 

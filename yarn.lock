@@ -3358,6 +3358,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "shared@workspace:packages/shared"
   dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     "@upstash/redis": "npm:^1.33.0"
     langchain: "npm:^0.2.10"
     zod: "npm:^3.23.8"

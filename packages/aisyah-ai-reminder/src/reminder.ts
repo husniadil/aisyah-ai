@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from "@packages/shared/fetcher";
 import {
   type IReminder,
   type RemindInput,
@@ -40,7 +41,7 @@ export class Reminder implements IReminder {
     console.log("Setting reminder with the following input:", input);
     const url = this.createUrl(input);
     try {
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         method: "POST",
         headers: this.headers(),
         body: this.withData({ chatId, title, timeZone, date, time }),

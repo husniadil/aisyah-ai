@@ -6,6 +6,8 @@ import {
   SearchGoogleOutput,
 } from "@packages/shared/types/explorer";
 
+import { fetchWithTimeout } from "@packages/shared/fetcher";
+
 interface Env {
   GOOGLE_SEARCH_API_KEY: string;
   GOOGLE_SEARCH_ENGINE_ID: string;
@@ -35,7 +37,7 @@ export class Explorer implements IExplorer {
       }
       const url = this.createGoogleSearchURL(query);
 
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(url);
       return SearchGoogleOutput.parse(await response.json());
     } catch (error) {
       console.error(error);
@@ -50,7 +52,7 @@ export class Explorer implements IExplorer {
     console.log("Fetching webpage with the following data:", input);
     try {
       const url = this.createJinaReaderProxyURL(input.url);
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         redirect: "follow",
       });
       if (!response.ok) {

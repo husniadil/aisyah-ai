@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from "@packages/shared/fetcher";
 import {
   type IWhisper,
   type ListenInput,
@@ -24,7 +25,7 @@ export class Whisper implements IWhisper {
     const { audioUrl } = input;
     try {
       const transcription = await this.openAI.audio.transcriptions.create({
-        file: await fetch(audioUrl),
+        file: await fetchWithTimeout(audioUrl),
         model: "whisper-1",
       });
       return ListenOutput.parse({

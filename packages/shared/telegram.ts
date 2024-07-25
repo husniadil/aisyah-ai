@@ -1,10 +1,11 @@
+import { fetchWithTimeout } from "./fetcher";
 import type { AuthInput, MessageInput } from "./types/telegram";
 
 export const sendMessage =
   (input: AuthInput) =>
   async (message: MessageInput): Promise<void> => {
     const url = `${input.telegramApiBaseUrl}/bot${input.botToken}/sendMessage?chat_id=${message.chatId}&text=${encodeURIComponent(message.text)}`;
-    await fetch(url);
+    await fetchWithTimeout(url);
   };
 
 export const getFileUrl = (config: AuthInput) => (filePath?: string) => {
@@ -19,7 +20,7 @@ export const getFile = (config: AuthInput) => async (fileId?: string) => {
   }
   try {
     const url = `${config.telegramApiBaseUrl}/bot${config.botToken}/getFile?file_id=${fileId}`;
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
     return (await response.json()) as { result: { file_path: string } };
   } catch (error) {
     console.error("Failed to get file:", error);

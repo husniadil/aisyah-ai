@@ -1,5 +1,5 @@
+import { GetWeatherInput } from "@packages/shared/types/storm";
 import { Hono } from "hono";
-import { GetWeatherInput } from "/Users/husni/github.com/husniadil/aisyah-ai/packages/shared/types/storm";
 import { Storm } from "./storm";
 
 const app = new Hono<{ Bindings: Env }>();

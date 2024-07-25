@@ -1,8 +1,9 @@
+import { fetchWithTimeout } from "@packages/shared/fetcher";
 import {
   type GetWeatherInput,
   GetWeatherOutput,
   type IStorm,
-} from "/Users/husni/github.com/husniadil/aisyah-ai/packages/shared/types/storm";
+} from "@packages/shared/types/storm";
 
 interface Env {
   OPEN_WEATHER_MAP_API_KEY: string;
@@ -23,7 +24,7 @@ export class Storm implements IStorm {
     const { city, unit } = input;
     const url = this.createUrl(input);
     try {
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(url);
       if (!response.ok) {
         const message = `Failed to fetch weather data for city: ${city} with unit: ${unit}`;
         console.error(message);

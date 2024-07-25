@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from "@packages/shared/fetcher";
 import { sendMessage } from "@packages/shared/telegram";
 import { AgentTool } from "@packages/shared/tools/agent";
 import { SonataTool } from "@packages/shared/tools/sonata";
@@ -33,7 +34,7 @@ app.get("/", async (c) => {
 
 app.post("/webhooks/telegram/setup", async (c) => {
   const url = `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/setWebhook?url=${c.req.url.replace("/setup", "")}`;
-  await fetch(url);
+  await fetchWithTimeout(url);
   return c.json({ message: "Webhook setup done" });
 });
 

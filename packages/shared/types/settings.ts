@@ -48,10 +48,10 @@ export const AgentSettings = z.object({
         .describe("The temperature"),
       maxTokens: z
         .nativeEnum({
-          "none: 0": 0,
-          "short: 1024": 1024,
-          "medium: 4096": 4096,
-          "long: 16384": 16384,
+          "short: 256": 256,
+          "medium: 1024": 1024,
+          "long: 4096": 4096,
+          "very long: 16384": 16384,
         })
         .optional()
         .describe("The maximum tokens"),

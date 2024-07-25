@@ -147,6 +147,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^4.20240718.0":
+  version: 4.20240722.0
+  resolution: "@cloudflare/workers-types@npm:4.20240722.0"
+  checksum: 10c0/2e720d1c06afb523e54ea93f7d458af12bd59f0557b96ba441d22e68038e1c3d0571d1d7f1db8d3af579befaa709a92ef21b596657626a445f75698853bd9055
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:0.8.1":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -1078,7 +1085,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-agent@workspace:packages/aisyah-ai-agent"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     "@langchain/community": "npm:^0.2.19"
     "@langchain/core": "npm:^0.2.17"
     "@langchain/openai": "npm:^0.2.4"
@@ -1094,7 +1101,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-explorer@workspace:packages/aisyah-ai-explorer"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.66.0"
@@ -1106,7 +1113,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-reminder@workspace:packages/aisyah-ai-reminder"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.66.0"
@@ -1118,7 +1125,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-sonata@workspace:packages/aisyah-ai-sonata"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     "@supabase/supabase-js": "npm:^2.44.4"
     elevenlabs: "npm:^0.10.0"
     hono: "npm:^4.5.1"
@@ -1131,7 +1138,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-storm@workspace:packages/aisyah-ai-storm"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.66.0"
@@ -1143,7 +1150,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-telegraph@workspace:packages/aisyah-ai-telegraph"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     grammy: "npm:^1.27.0"
     hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
@@ -1156,7 +1163,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-vision@workspace:packages/aisyah-ai-vision"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.66.0"
@@ -1168,7 +1175,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aisyah-ai-whisper@workspace:packages/aisyah-ai-whisper"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240712.0"
+    "@cloudflare/workers-types": "npm:^4.20240718.0"
     hono: "npm:^4.5.1"
     openai: "npm:^4.52.7"
     wrangler: "npm:^3.66.0"

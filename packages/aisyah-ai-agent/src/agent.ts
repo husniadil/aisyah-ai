@@ -30,13 +30,15 @@ import type { StructuredTool } from "langchain/tools";
 
 interface Env {
   OPENAI_API_KEY: string;
-  AGENT_PERSONA_AISYAH_DEFAULT: string;
   AGENT_LLM_MODEL: "gpt-4o-mini";
   AGENT_LLM_MAX_TOKENS: 4096;
   AGENT_LLM_TEMPERATURE: 0.7;
   AGENT_LLM_TOP_P: 1;
   AGENT_LLM_FREQUENCY_PENALTY: 0;
   AGENT_LLM_PRESENCE_PENALTY: 0;
+
+  AGENT_PERSONA_AISYAH_DEFAULT: string;
+  AGENT_PERSONA_PERSONAL_ASSISTANT: string;
 
   AISYAH_AI_VISION: Fetcher;
   AISYAH_AI_SONATA: Fetcher;
@@ -68,6 +70,7 @@ export class Agent implements IAgent {
     });
     this.personaMap = {
       "aisyah-default": env.AGENT_PERSONA_AISYAH_DEFAULT,
+      "personal-assistant": env.AGENT_PERSONA_PERSONAL_ASSISTANT,
     };
     this.persona = settings.persona || AgentPersona["Aisyah Default"];
     this.currentTimeTool = new CurrentTimeTool();

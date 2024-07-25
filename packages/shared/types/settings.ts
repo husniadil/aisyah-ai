@@ -8,9 +8,9 @@ export const TelegraphSettings = z.object({
   chatHistoryLimit: z
     .nativeEnum({
       "none: 0": 0,
-      "short: 5": 10,
-      "medium: 10": 20,
-      "long: 20": 50,
+      "short: 10": 10,
+      "medium: 20": 20,
+      "long: 50": 50,
     })
     .optional()
     .describe("The chat history limit"),

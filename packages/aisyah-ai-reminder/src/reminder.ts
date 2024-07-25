@@ -15,10 +15,10 @@ export class Reminder implements IReminder {
   private headers: () => Record<string, string>;
 
   private withData = (data: RemindInput) => {
-    const { chatId, title, date, time, timeZone } = data;
+    const { chatId, reminderPrompt, date, time, timeZone } = data;
     return new URLSearchParams({
-      title: title,
-      notes: chatId,
+      title: chatId,
+      notes: reminderPrompt,
       date_tz: date,
       time_tz: time,
       timezone: timeZone,
@@ -37,14 +37,14 @@ export class Reminder implements IReminder {
   }
 
   async remind(input: RemindInput): Promise<RemindOutput> {
-    const { chatId, title, date, time, timeZone } = input;
-    console.log("Setting reminder with the following input:", input);
+    const { chatId, reminderPrompt, date, time, timeZone } = input;
+    console.log("Setting reminder with the following input:", reminderPrompt);
     const url = this.createUrl(input);
     try {
       const response = await fetchWithTimeout(url, {
         method: "POST",
         headers: this.headers(),
-        body: this.withData({ chatId, title, timeZone, date, time }),
+        body: this.withData({ chatId, reminderPrompt, timeZone, date, time }),
         redirect: "follow",
       });
       if (!response.ok) {

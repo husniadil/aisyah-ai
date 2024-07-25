@@ -2,9 +2,11 @@ import { z } from "zod";
 
 export const RemindInput = z.object({
   chatId: z.string().describe("The chatId in chat platform, e.g. 1234567890"),
-  title: z
+  reminderPrompt: z
     .string()
-    .describe("The title of the reminder, e.g. Prepare for the new year party"),
+    .describe(
+      "The prompt of the reminder you can say when the reminder is due, e.g. Hey Andy, it's 5am, time to wake up!",
+    ),
   date: z.string().describe("The date of the reminder, e.g. 2024-12-31"),
   time: z.string().describe("The time of the reminder, e.g. 21:00"),
   timeZone: z

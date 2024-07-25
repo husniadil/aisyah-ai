@@ -113,7 +113,8 @@ export class Telegraph {
     );
     const hasQuestionMark = ctx.message?.text?.includes("?");
     const isMentioningOtherUsers =
-      ctx.message?.entities?.some((entity) => entity.type === "mention") &&
+      (ctx.message?.entities?.some((entity) => entity.type === "mention") ??
+        false) &&
       !mentionsBot;
 
     return (

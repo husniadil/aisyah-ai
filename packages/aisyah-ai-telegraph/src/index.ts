@@ -50,26 +50,14 @@ app.post("/webhooks/reminders-api", async (c) => {
     if (!title || !notes) {
       return c.json("Invalid reminder format.\n");
     }
-    const question = `Tolong buatkan himbauan tentang ini sekarang, respon dengan gayamu: ${title}`;
-
-    const agent = new AgentTool(c.env.AISYAH_AI_AGENT);
-
-    const response = await agent.chat({
-      chatId: notes,
-      messageId: "0",
-      senderId: "0",
-      senderName: "",
-      message: question,
-      chatHistory: [],
-    });
 
     const authInput = AuthInput.parse({
       telegramApiBaseUrl: c.env.TELEGRAM_API_BASE_URL,
       botToken: c.env.TELEGRAM_BOT_TOKEN,
     });
     const messageInput = MessageInput.parse({
-      chatId: notes,
-      text: response.data,
+      chatId: title,
+      text: notes,
     });
     return await sendMessage(authInput)(messageInput);
   } catch (error) {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export enum AgentPersona {
-  aisyahDefault = "Aisyah-default",
+  "Aisyah Default" = "aisyah-default",
 }
 
 export const TelegraphSettings = z.object({

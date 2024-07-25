@@ -67,9 +67,9 @@ export class Agent implements IAgent {
       user,
     });
     this.personaMap = {
-      [AgentPersona.aisyahDefault]: env.AGENT_PERSONA_AISYAH_DEFAULT,
+      "aisyah-default": env.AGENT_PERSONA_AISYAH_DEFAULT,
     };
-    this.persona = settings.persona || AgentPersona.aisyahDefault;
+    this.persona = settings.persona || AgentPersona["Aisyah Default"];
     this.currentTimeTool = new CurrentTimeTool();
     this.tools.push(
       new Calculator(),

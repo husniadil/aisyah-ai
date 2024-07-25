@@ -17,14 +17,11 @@ export class UpstashRedisChatHistory implements IChatHistory {
   private readonly limit: number;
 
   constructor(env: Env) {
-    if (env.CHAT_HISTORY_LIMIT <= 0) {
-      throw new Error("Limit must be a positive integer");
-    }
     this.redis = new Redis({
       url: env.UPSTASH_REDIS_REST_URL,
       token: env.UPSTASH_REDIS_REST_TOKEN,
     });
-    this.limit = env.CHAT_HISTORY_LIMIT;
+    this.limit = env.CHAT_HISTORY_LIMIT < 2 ? 2 : env.CHAT_HISTORY_LIMIT;
   }
 
   async append(

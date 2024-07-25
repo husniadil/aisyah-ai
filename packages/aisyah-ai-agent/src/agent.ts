@@ -21,13 +21,16 @@ import {
   type IAgent,
 } from "@packages/shared/types/agent";
 import type { ChatHistoryList } from "@packages/shared/types/chat-history";
-import type { AgentSettings } from "@packages/shared/types/settings";
+import {
+  AgentPersona,
+  type AgentSettings,
+} from "@packages/shared/types/settings";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import type { StructuredTool } from "langchain/tools";
 
 interface Env {
   OPENAI_API_KEY: string;
-  AGENT_SYSTEM_PROMPT: string;
+  AGENT_PERSONA_AISYAH_DEFAULT: string;
   AGENT_LLM_MODEL: "gpt-4o-mini";
   AGENT_LLM_MAX_TOKENS: 4096;
   AGENT_LLM_TEMPERATURE: 0.7;
@@ -46,7 +49,8 @@ interface Env {
 export class Agent implements IAgent {
   private readonly llm: ChatOpenAI;
   private readonly tools: StructuredTool[] = [];
-  private readonly systemPrompt: string;
+  private readonly personaMap: Record<AgentPersona, string>;
+  private readonly persona: AgentPersona;
   private currentTimeTool: CurrentTimeTool;
 
   constructor(env: Env, settings: AgentSettings, user: string) {
@@ -62,7 +66,10 @@ export class Agent implements IAgent {
         settings.llm?.presencePenalty || env.AGENT_LLM_PRESENCE_PENALTY,
       user,
     });
-    this.systemPrompt = settings.systemPrompt ?? env.AGENT_SYSTEM_PROMPT;
+    this.personaMap = {
+      [AgentPersona.aisyahDefault]: env.AGENT_PERSONA_AISYAH_DEFAULT,
+    };
+    this.persona = settings.persona || AgentPersona.aisyahDefault;
     this.currentTimeTool = new CurrentTimeTool();
     this.tools.push(
       new Calculator(),
@@ -146,7 +153,7 @@ export class Agent implements IAgent {
     const agentExecutor = await this.createAgentExecutor();
     const response = await agentExecutor
       .invoke({
-        system_message: new SystemMessage(this.systemPrompt),
+        system_message: new SystemMessage(this.personaMap[this.persona]),
         current_time: new SystemMessage(
           `Context: current date-time: ${this.currentTimeTool.getCurrentDateTime(
             {

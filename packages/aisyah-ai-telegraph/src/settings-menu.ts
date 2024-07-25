@@ -47,7 +47,10 @@ const createSettingsMenu = (
       } as SettingMenu;
     }
 
-    if (subSchema._def.innerType instanceof z.ZodNativeEnum) {
+    if (
+      subSchema._def.innerType instanceof z.ZodNativeEnum ||
+      subSchema._def.innerType instanceof z.ZodEnum
+    ) {
       return {
         label,
         data: fullKey,
@@ -79,7 +82,10 @@ const createSettingsMenu = (
         } as SettingMenu;
       }
 
-      if (subSchema._def.innerType._def.innerType instanceof z.ZodNativeEnum) {
+      if (
+        subSchema._def.innerType._def.innerType instanceof z.ZodNativeEnum ||
+        subSchema._def.innerType._def.innerType instanceof z.ZodEnum
+      ) {
         return {
           label,
           data: fullKey,

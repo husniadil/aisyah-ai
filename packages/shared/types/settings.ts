@@ -1,19 +1,23 @@
 import { z } from "zod";
 
+export enum AgentPersona {
+  aisyahDefault = "Aisyah Default",
+}
+
 export const TelegraphSettings = z.object({
   chatHistoryLimit: z
     .nativeEnum({
       "none: 0": 0,
-      "short: 5": 5,
-      "medium: 10": 10,
-      "long: 20": 20,
+      "short: 5": 10,
+      "medium: 10": 20,
+      "long: 20": 50,
     })
     .optional()
     .describe("The chat history limit"),
 });
 
 export const AgentSettings = z.object({
-  systemPrompt: z.string().optional().describe("The system prompt"),
+  persona: z.nativeEnum(AgentPersona).optional().describe("Agent persona"),
   llm: z
     .object({
       model: z

@@ -63,7 +63,7 @@ export class Telegraph {
       UPSTASH_REDIS_REST_URL: env.UPSTASH_REDIS_REST_URL,
       UPSTASH_REDIS_REST_TOKEN: env.UPSTASH_REDIS_REST_TOKEN,
       CHAT_HISTORY_LIMIT:
-        settings.telegraph.chatHistoryLimit || env.CHAT_HISTORY_LIMIT,
+        settings.telegraph.chatHistoryLimit ?? env.CHAT_HISTORY_LIMIT,
     });
     this.rateLimit = new UpstashRedisRateLimit(env);
     this.lock = new UpstashRedisLock(env);

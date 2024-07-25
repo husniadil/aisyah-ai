@@ -445,7 +445,7 @@ export class Telegraph {
   private async constructUserMessage(ctx: Context) {
     const fileUrls = await this.extractFileUrls(ctx);
     if (ctx.message?.voice || ctx.message?.reply_to_message?.voice) {
-      const voiceUrl = fileUrls.shift();
+      const voiceUrl = fileUrls.pop();
       try {
         return voiceUrl
           ? (
@@ -464,7 +464,7 @@ export class Telegraph {
       ctx.message?.reply_to_message?.photo ||
       ctx.message?.reply_to_message?.audio
     ) {
-      const url = fileUrls.shift();
+      const url = fileUrls.pop();
       return [ctx.message?.caption, url].filter(Boolean).join("\n");
     }
     if (ctx.message?.sticker) {

@@ -103,7 +103,7 @@ export class Agent implements IAgent {
     return ChatPromptTemplate.fromMessages(messages);
   }
 
-  private async createAgentExecutor(): Promise<AgentExecutor> {
+  private async createToolCallingAgentExecutor(): Promise<AgentExecutor> {
     const agent = createToolCallingAgent({
       llm: this.llm,
       prompt: this.createChatPromptTemplate(),
@@ -112,7 +112,7 @@ export class Agent implements IAgent {
     return new AgentExecutor({ agent, tools: this.tools });
   }
 
-  private async createReactAgent(): Promise<AgentExecutor> {
+  private async createReactAgentExecutor(): Promise<AgentExecutor> {
     const agent = await createReactAgent({
       llm: this.llm,
       prompt: this.createChatPromptTemplate(),
@@ -169,7 +169,7 @@ export class Agent implements IAgent {
       `${senderName}: ${message}`,
     ];
 
-    const agentExecutor = await this.createAgentExecutor();
+    const agentExecutor = await this.createToolCallingAgentExecutor();
     const response = await agentExecutor
       .invoke({
         system_message: new SystemMessage(this.personaMap[this.persona]),

@@ -1,4 +1,5 @@
 import { Calculator } from "@langchain/community/tools/calculator";
+import { WikipediaQueryRun } from "@langchain/community/tools/wikipedia_query_run";
 import { type BaseMessage, SystemMessage } from "@langchain/core/messages";
 import {
   AIMessagePromptTemplate,
@@ -77,6 +78,7 @@ export class Agent implements IAgent {
     this.tools.push(
       new Calculator(),
       this.currentTimeTool,
+      new WikipediaQueryRun({ topKResults: 2, maxDocContentLength: 1000 }),
       new VisionTool(env.AISYAH_AI_VISION),
       new SonataTool(env.AISYAH_AI_SONATA),
       new WhisperTool(env.AISYAH_AI_WHISPER),

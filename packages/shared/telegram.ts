@@ -4,7 +4,7 @@ import type { AuthInput, MessageInput } from "./types/telegram";
 export const sendMessage =
   (input: AuthInput) =>
   async (message: MessageInput): Promise<void> => {
-    const url = `${input.telegramApiBaseUrl}/bot${input.botToken}/sendMessage?chat_id=${message.chatId}&text=${encodeURIComponent(message.text)}`;
+    const url = `${input.telegramApiBaseUrl}/bot${input.botToken}/sendMessage?chat_id=${message.chatId}&text=${encodeURIComponent(message.text)}parse_mode=MarkdownV2`;
     await fetchWithTimeout(url);
   };
 

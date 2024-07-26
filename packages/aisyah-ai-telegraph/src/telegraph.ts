@@ -144,7 +144,9 @@ export class Telegraph {
       await this.reply(ctx, output);
     } catch (error) {
       console.log("Telegraph ~ handleCommand ~ error:", command, error);
-      await ctx.reply(`${(error as Error).message}`);
+      await ctx.reply(`${(error as Error).message}`, {
+        parse_mode: "MarkdownV2",
+      });
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
@@ -167,7 +169,9 @@ export class Telegraph {
       if (ctx.message?.chat?.id) {
         this.chatHistory.clear(ctx.message?.chat?.id.toString());
       }
-      return await ctx.reply("----- 👌 💬 ❌ 👍 -----");
+      return await ctx.reply("----- 👌 💬 ❌ 👍 -----", {
+        parse_mode: "MarkdownV2",
+      });
     });
     this.bot.command(
       "help",
@@ -188,7 +192,10 @@ export class Telegraph {
         "settings",
         this.settingsManager.getCurrentSettings(),
       );
-      await ctx.reply("⚙️ Settings", { reply_markup: keyboard });
+      await ctx.reply("⚙️ Settings", {
+        reply_markup: keyboard,
+        parse_mode: "MarkdownV2",
+      });
     });
 
     this.bot.on("callback_query:data", async (ctx) => {
@@ -274,7 +281,9 @@ export class Telegraph {
       });
     } catch (error) {
       console.log("Telegraph ~ handleMessage ~ error:", error);
-      await ctx.reply(`${(error as Error).message}`);
+      await ctx.reply(`${(error as Error).message}`, {
+        parse_mode: "MarkdownV2",
+      });
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
@@ -351,13 +360,15 @@ export class Telegraph {
     const replyToMessageId = Number.parseInt(output.messageId);
     if (output.replyType === "text") {
       return await ctx.reply(output.message, {
+        parse_mode: "MarkdownV2",
         reply_to_message_id:
           output.chatType === "private" ? undefined : replyToMessageId,
       });
     }
     if (output.replyType === "voice") {
       await ctx.replyWithChatAction("record_voice");
-      return await ctx.replyWithAudio(output.message, {
+      return await ctx.replyWithVoice(output.message, {
+        parse_mode: "MarkdownV2",
         reply_to_message_id:
           output.chatType === "private" ? undefined : replyToMessageId,
       });

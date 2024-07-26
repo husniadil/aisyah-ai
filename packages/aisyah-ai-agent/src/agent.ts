@@ -25,11 +25,7 @@ import {
   AgentPersona,
   type AgentSettings,
 } from "@packages/shared/types/settings";
-import {
-  AgentExecutor,
-  createReactAgent,
-  createToolCallingAgent,
-} from "langchain/agents";
+import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import type { StructuredTool } from "langchain/tools";
 
 interface Env {
@@ -110,18 +106,6 @@ export class Agent implements IAgent {
       tools: this.tools,
     });
     return new AgentExecutor({ agent, tools: this.tools });
-  }
-
-  private async createReactAgentExecutor(): Promise<AgentExecutor> {
-    const agent = await createReactAgent({
-      llm: this.llm,
-      prompt: this.createChatPromptTemplate(),
-      tools: this.tools,
-    });
-    return new AgentExecutor({
-      agent,
-      tools: this.tools,
-    });
   }
 
   private async createChatHistoryMessages(

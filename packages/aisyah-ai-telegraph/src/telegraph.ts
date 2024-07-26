@@ -6,7 +6,6 @@ import {
   extractAudioLink,
   getFile,
   getFileUrl,
-  isContainingAudioLink,
 } from "@packages/shared/telegram";
 import { AgentTool } from "@packages/shared/tools/agent";
 import { SonataTool } from "@packages/shared/tools/sonata";
@@ -259,11 +258,11 @@ export class Telegraph {
         message: userMessage,
         chatHistory: chatHistory.slice(0, -1),
       });
-
       const output = await this.composeMessageOutputMaybeAudio(
         ctx,
         response.data,
       );
+      await this.reply(ctx, output);
       await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
         message: response.data,
         type: "ai",
@@ -272,7 +271,6 @@ export class Telegraph {
           timeZone: "Asia/Jakarta",
         }),
       });
-      await this.reply(ctx, output);
     } catch (error) {
       console.error(error);
       await ctx.reply(`${(error as Error).message}`);
@@ -285,60 +283,31 @@ export class Telegraph {
     ctx: Context,
     agentResponse: string,
   ): Promise<ComposeMessageOutput> {
-    let output: ComposeMessageOutput;
-    if (ctx.message?.voice) {
+    const chatId = ctx.message?.chat?.id.toString() ?? "";
+    const messageId = ctx.message?.message_id.toString() ?? "";
+    const audioLink = extractAudioLink(agentResponse);
+    if (ctx.message?.voice || audioLink) {
       try {
         const sonataResponse = await this.sonataTool.speak({
           text: agentResponse,
-          metadata: {
-            chatId: ctx.message?.chat?.id.toString() ?? "",
-            messageId: ctx.message?.message_id.toString() ?? "",
-          },
+          metadata: { chatId, messageId },
         });
-        output = this.composeMessage(ctx, {
-          message: sonataResponse.data ?? agentResponse,
-          replyType: sonataResponse.data ? "voice" : "text",
+        const replyType = sonataResponse.data ? "voice" : "text";
+        return this.composeMessage(ctx, {
+          message: sonataResponse.data || agentResponse,
+          replyType,
         });
-      } catch (error) {
-        output = this.composeMessage(ctx, {
+      } catch {
+        return this.composeMessage(ctx, {
           message: agentResponse,
           replyType: "text",
         });
       }
-    } else if (isContainingAudioLink(agentResponse)) {
-      const audioLink = extractAudioLink(agentResponse);
-      if (audioLink) {
-        try {
-          const sonataResponse = await this.sonataTool.speak({
-            text: agentResponse,
-            metadata: {
-              chatId: ctx.message?.chat?.id.toString() ?? "",
-              messageId: ctx.message?.message_id.toString() ?? "",
-            },
-          });
-          output = this.composeMessage(ctx, {
-            message: sonataResponse.data ?? agentResponse,
-            replyType: sonataResponse.data ? "voice" : "text",
-          });
-        } catch (error) {
-          output = this.composeMessage(ctx, {
-            message: agentResponse,
-            replyType: "text",
-          });
-        }
-      } else {
-        output = this.composeMessage(ctx, {
-          message: agentResponse,
-          replyType: "text",
-        });
-      }
-    } else {
-      output = this.composeMessage(ctx, {
-        message: agentResponse,
-        replyType: "text",
-      });
     }
-    return output;
+    return this.composeMessage(ctx, {
+      message: agentResponse,
+      replyType: "text",
+    });
   }
 
   private initializeMessageHandlers(executionContext: ExecutionContext) {
@@ -445,58 +414,47 @@ export class Telegraph {
 
   private async constructUserMessage(ctx: Context) {
     const fileUrls = await this.extractFileUrls(ctx);
-    if (ctx.message?.voice || ctx.message?.reply_to_message?.voice) {
-      const voiceUrl = fileUrls.pop();
-      try {
+
+    try {
+      if (ctx.message?.voice || ctx.message?.reply_to_message?.voice) {
+        const voiceUrl = fileUrls.pop();
         return voiceUrl
-          ? (
-              await this.whisperTool.listen({
-                audioUrl: voiceUrl,
-              })
-            ).data
+          ? (await this.whisperTool.listen({ audioUrl: voiceUrl })).data
           : "";
-      } catch (error) {
-        return "Error: I can't listen to this voice message.";
       }
+
+      if (
+        ctx.message?.audio ||
+        ctx.message?.photo ||
+        ctx.message?.reply_to_message?.photo ||
+        ctx.message?.reply_to_message?.audio
+      ) {
+        const url = fileUrls.pop();
+        return [ctx.message?.caption, url].filter(Boolean).join("\n");
+      }
+
+      if (ctx.message?.sticker) return ctx.message.sticker.emoji || "";
+      if (ctx.message?.location)
+        return `Location: ${ctx.message.location.latitude}, ${ctx.message.location.longitude}`;
+      if (ctx.message?.venue) return `Venue: ${ctx.message.venue.title}`;
+      if (ctx.message?.contact)
+        return `Contact: ${ctx.message.contact.phone_number}`;
+      if (ctx.message?.video || ctx.message?.animation)
+        return ctx.message.caption || "";
+
+      if (ctx.message?.poll) {
+        const question = ctx.message.poll.question || "";
+        const options =
+          ctx.message.poll.options
+            ?.map((option) => `[${option.text}]`)
+            .join(", ") || "";
+        return `Polling\nQuestion: ${question}\nOptions: ${options}`;
+      }
+
+      return ctx.message?.text || "";
+    } catch (error) {
+      return "Error: I can't listen to this voice message.";
     }
-    if (
-      ctx.message?.audio ||
-      ctx.message?.photo ||
-      ctx.message?.reply_to_message?.photo ||
-      ctx.message?.reply_to_message?.audio
-    ) {
-      const url = fileUrls.pop();
-      return [ctx.message?.caption, url].filter(Boolean).join("\n");
-    }
-    if (ctx.message?.sticker) {
-      return ctx.message?.sticker.emoji || "";
-    }
-    if (ctx.message?.location) {
-      return `Location: ${ctx.message?.location.latitude}, ${ctx.message?.location.longitude}`;
-    }
-    if (ctx.message?.venue) {
-      return `Venue: ${ctx.message?.venue.title}`;
-    }
-    if (ctx.message?.contact) {
-      return `Contact: ${ctx.message?.contact.phone_number}`;
-    }
-    if (ctx.message?.video) {
-      return ctx.message?.caption || "";
-    }
-    if (ctx.message?.animation) {
-      return ctx.message?.caption || "";
-    }
-    if (ctx.message?.poll) {
-      const question = ctx.message?.poll.question || "";
-      const options =
-        ctx.message?.poll.options
-          ?.map((option) => `[${option.text}]`)
-          .join(", ") || "";
-      return ["Polling", `Question: ${question}`, `Options: ${options}`]
-        .filter(Boolean)
-        .join("\n");
-    }
-    return ctx.message?.text || "";
   }
 
   private async trackInteractions(

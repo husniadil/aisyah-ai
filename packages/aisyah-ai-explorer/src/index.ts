@@ -1,5 +1,6 @@
 import {
   GetWebContentInput,
+  SearchGoogleImagesInput,
   SearchGoogleInput,
 } from "@packages/shared/types/explorer";
 import { Hono } from "hono";
@@ -16,6 +17,18 @@ app.post("/search-google", async (c) => {
     const input = SearchGoogleInput.parse(await c.req.json());
     const explorer = new Explorer(c.env);
     const response = await explorer.searchGoogle(input);
+    return c.json(response);
+  } catch (error) {
+    console.log("app.post ~ error:", error);
+    return c.json({ error: `${error}` }, { status: 400 });
+  }
+});
+
+app.post("/search-google-images", async (c) => {
+  try {
+    const input = SearchGoogleImagesInput.parse(await c.req.json());
+    const explorer = new Explorer(c.env);
+    const response = await explorer.searchGoogleImages(input);
     return c.json(response);
   } catch (error) {
     console.log("app.post ~ error:", error);

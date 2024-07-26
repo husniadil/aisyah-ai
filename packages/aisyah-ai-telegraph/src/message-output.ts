@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ComposeMessageInput = z.object({
   message: z.string().describe("The message."),
-  replyType: z.enum(["text", "voice"]).describe("The type of reply."),
+  replyType: z.enum(["text", "voice", "photo"]).describe("The type of reply."),
 });
 
 export const ComposeMessageOutput = z.object({
@@ -14,7 +14,7 @@ export const ComposeMessageOutput = z.object({
   chatType: z
     .enum(["private", "group", "supergroup", "channel"])
     .describe("The chat type."),
-  replyType: z.enum(["text", "voice"]).describe("The type of reply."),
+  replyType: z.enum(["text", "voice", "photo"]).describe("The type of reply."),
 });
 
 export type ComposeMessageInput = z.infer<typeof ComposeMessageInput>;

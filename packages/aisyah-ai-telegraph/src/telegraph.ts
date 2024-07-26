@@ -2,17 +2,14 @@ import type { ExecutionContext } from "@cloudflare/workers-types";
 import { UpstashRedisChatHistory } from "@packages/shared/chat-history";
 import { UpstashRedisLock } from "@packages/shared/lock";
 import { UpstashRedisRateLimit } from "@packages/shared/rate-limit";
-import {
-  extractAudioLink,
-  getFile,
-  getFileUrl,
-} from "@packages/shared/telegram";
+import { getFile, getFileUrl } from "@packages/shared/telegram";
 import { AgentTool } from "@packages/shared/tools/agent";
 import { SonataTool } from "@packages/shared/tools/sonata";
 import { CurrentTimeTool } from "@packages/shared/tools/time";
 import { WhisperTool } from "@packages/shared/tools/whisper";
 import type { ChatHistoryList } from "@packages/shared/types/chat-history";
 import type { Settings } from "@packages/shared/types/settings";
+import { extractAudioLink, extractPhotoLink } from "@packages/shared/utils";
 import { Bot, type Context, webhookCallback } from "grammy";
 import type { UserFromGetMe } from "grammy/types";
 import { createKeyboard } from "./inline-keyboard";
@@ -144,9 +141,7 @@ export class Telegraph {
       await this.reply(ctx, output);
     } catch (error) {
       console.log("Telegraph ~ handleCommand ~ error:", command, error);
-      await ctx.reply(`${(error as Error).message}`, {
-        parse_mode: "MarkdownV2",
-      });
+      await ctx.reply(`${(error as Error).message}`);
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
@@ -169,9 +164,7 @@ export class Telegraph {
       if (ctx.message?.chat?.id) {
         this.chatHistory.clear(ctx.message?.chat?.id.toString());
       }
-      return await ctx.reply("----- 👌 💬 ❌ 👍 -----", {
-        parse_mode: "MarkdownV2",
-      });
+      return await ctx.reply("----- 👌 💬 ❌ 👍 -----");
     });
     this.bot.command(
       "help",
@@ -194,7 +187,6 @@ export class Telegraph {
       );
       await ctx.reply("⚙️ Settings", {
         reply_markup: keyboard,
-        parse_mode: "MarkdownV2",
       });
     });
 
@@ -266,10 +258,7 @@ export class Telegraph {
         message: userMessage,
         chatHistory: chatHistory.slice(0, -1),
       });
-      const output = await this.composeMessageOutputMaybeAudio(
-        ctx,
-        response.data,
-      );
+      const output = await this.composeMessageOutput(ctx, response.data);
       await this.reply(ctx, output);
       await this.saveUserMessage(ctx.message?.chat?.id.toString(), {
         message: response.data,
@@ -281,21 +270,26 @@ export class Telegraph {
       });
     } catch (error) {
       console.log("Telegraph ~ handleMessage ~ error:", error);
-      await ctx.reply(`${(error as Error).message}`, {
-        parse_mode: "MarkdownV2",
-      });
+      await ctx.reply(`${(error as Error).message}`);
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
     }
   }
 
-  private async composeMessageOutputMaybeAudio(
+  private async composeMessageOutput(
     ctx: Context,
     agentResponse: string,
   ): Promise<ComposeMessageOutput> {
     const chatId = ctx.message?.chat?.id.toString() ?? "";
     const messageId = ctx.message?.message_id.toString() ?? "";
     const audioLink = extractAudioLink(agentResponse);
+    const photoLink = extractPhotoLink(agentResponse);
+    if (photoLink) {
+      return this.composeMessage(ctx, {
+        message: photoLink,
+        replyType: "photo",
+      });
+    }
     if (ctx.message?.voice || audioLink) {
       try {
         const sonataResponse = await this.sonataTool.speak({
@@ -354,13 +348,13 @@ export class Telegraph {
   }
 
   async reply(ctx: Context, output: ComposeMessageOutput) {
+    console.log("Telegraph ~ reply ~ output.message:", output.message);
     await ctx.replyWithChatAction(
       output.replyType === "voice" ? "record_voice" : "typing",
     );
     const replyToMessageId = Number.parseInt(output.messageId);
     if (output.replyType === "text") {
       return await ctx.reply(output.message, {
-        parse_mode: "MarkdownV2",
         reply_to_message_id:
           output.chatType === "private" ? undefined : replyToMessageId,
       });
@@ -368,7 +362,13 @@ export class Telegraph {
     if (output.replyType === "voice") {
       await ctx.replyWithChatAction("record_voice");
       return await ctx.replyWithVoice(output.message, {
-        parse_mode: "MarkdownV2",
+        reply_to_message_id:
+          output.chatType === "private" ? undefined : replyToMessageId,
+      });
+    }
+    if (output.replyType === "photo") {
+      await ctx.replyWithChatAction("upload_photo");
+      return await ctx.replyWithPhoto(output.message, {
         reply_to_message_id:
           output.chatType === "private" ? undefined : replyToMessageId,
       });

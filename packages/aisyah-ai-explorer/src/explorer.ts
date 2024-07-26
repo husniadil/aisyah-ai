@@ -2,6 +2,7 @@ import {
   type GetWebContentInput,
   GetWebContentOutput,
   type IExplorer,
+  type SearchGoogleImagesInput,
   type SearchGoogleInput,
   SearchGoogleOutput,
 } from "@packages/shared/types/explorer";
@@ -17,11 +18,21 @@ interface Env {
 
 export class Explorer implements IExplorer {
   private createGoogleSearchURL: (query: string) => string;
+  private createGoogleImageSearchURL: (
+    query: string,
+    fileType?: ".jpg" | ".png" | ".gif",
+  ) => string;
   private createJinaReaderProxyURL: (url: string) => string;
 
   constructor(env: Env) {
     this.createGoogleSearchURL = (query: string) => {
-      return `${env.GOOGLE_SEARCH_API_BASE_URL}?q=${query}&key=${env.GOOGLE_SEARCH_API_KEY}&cx=${env.GOOGLE_SEARCH_ENGINE_ID}&num=2`;
+      return `${env.GOOGLE_SEARCH_API_BASE_URL}?q=${query}&key=${env.GOOGLE_SEARCH_API_KEY}&cx=${env.GOOGLE_SEARCH_ENGINE_ID}&num=1`;
+    };
+    this.createGoogleImageSearchURL = (
+      query: string,
+      fileType?: ".jpg" | ".png" | ".gif",
+    ) => {
+      return `${env.GOOGLE_SEARCH_API_BASE_URL}?q=${query}&key=${env.GOOGLE_SEARCH_API_KEY}&cx=${env.GOOGLE_SEARCH_ENGINE_ID}&num=1&fileType=${fileType}`;
     };
     this.createJinaReaderProxyURL = (url: string) =>
       `${env.JINA_READER_PROXY_BASE_URL}/${url}`;
@@ -30,11 +41,7 @@ export class Explorer implements IExplorer {
   async searchGoogle(input: SearchGoogleInput): Promise<SearchGoogleOutput> {
     console.log("Explorer ~ searchGoogle ~ input:", input);
     try {
-      if (!input.query) {
-        throw new Error("Query is required.");
-      }
       const url = this.createGoogleSearchURL(input.query);
-
       const response = await fetchWithTimeout(url);
       return SearchGoogleOutput.parse(await response.json());
     } catch (error) {
@@ -43,11 +50,22 @@ export class Explorer implements IExplorer {
     }
   }
 
+  async searchGoogleImages(
+    input: SearchGoogleImagesInput,
+  ): Promise<SearchGoogleOutput> {
+    console.log("Explorer ~ searchGoogleImages ~ input:", input);
+    try {
+      const url = this.createGoogleImageSearchURL(input.query, input.fileType);
+      const response = await fetchWithTimeout(url);
+      return SearchGoogleOutput.parse(await response.json());
+    } catch (error) {
+      console.log("Explorer ~ searchGoogleImages ~ error:", input, error);
+      throw error;
+    }
+  }
+
   async getWebContent(input: GetWebContentInput): Promise<GetWebContentOutput> {
     console.log("Explorer ~ getWebContent ~ input:", input);
-    if (!input.url) {
-      throw new Error("URL is required.");
-    }
     try {
       const url = this.createJinaReaderProxyURL(input.url);
       const response = await fetchWithTimeout(url, {

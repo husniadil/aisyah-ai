@@ -1,11 +1,14 @@
 import { z } from "zod";
 
 export const SearchGoogleInput = z.object({
-  query: z
-    .string()
-    .optional()
-    .describe("The query to search on Google if any."),
-  url: z.string().optional().describe("The URL to fetch the content if any."),
+  query: z.string().describe("The query to search on Google if any."),
+});
+
+export const SearchGoogleImagesInput = z.object({
+  query: z.string().describe("The query to search on Google if any."),
+  fileType: z
+    .union([z.literal(".jpg"), z.literal(".png"), z.literal(".gif")])
+    .describe("The file type to search on Google if any."),
 });
 
 export const SearchGoogleOutput = z.object({
@@ -34,6 +37,10 @@ export const SearchGoogleOutput = z.object({
                     .string()
                     .optional()
                     .describe("The ogdescription of the search result."),
+                  "og:image": z
+                    .string()
+                    .optional()
+                    .describe("The ogimage of the search result."),
                 }),
               )
               .optional()
@@ -47,37 +54,41 @@ export const SearchGoogleOutput = z.object({
 });
 
 export const GetWebContentInput = z.object({
-  url: z.string().optional().describe("The URL to fetch the content."),
+  url: z.string().describe("The URL to fetch the content."),
 });
 
 export const GetWebContentOutput = z.object({
   content: z.string().optional().describe("The content of the URL."),
 });
 
-export const SearchGoogleAndGetWebContentInput = z.object({
+export const BrowseWebInput = z.object({
   query: z
     .string()
     .optional()
     .describe("The query to search on Google if any."),
-  url: z.string().optional().describe("The URL to fetch the content if any."),
+  fileType: z
+    .union([z.literal(".jpg"), z.literal(".png"), z.literal(".gif")])
+    .optional()
+    .describe("For searching image only, specify the file type."),
+  url: z.string().optional().describe("The webpage URL to fetch the content."),
 });
 
-export const SearchGoogleAndGetWebContentOutput = z.object({
+export const BrowseWebOutput = z.object({
   data: z.string().optional().describe("The content of the URL."),
 });
 
 export type SearchGoogleInput = z.infer<typeof SearchGoogleInput>;
 export type SearchGoogleOutput = z.infer<typeof SearchGoogleOutput>;
+export type SearchGoogleImagesInput = z.infer<typeof SearchGoogleImagesInput>;
 export type GetWebContentInput = z.infer<typeof GetWebContentInput>;
 export type GetWebContentOutput = z.infer<typeof GetWebContentOutput>;
-export type SearchGoogleAndGetWebContentInput = z.infer<
-  typeof SearchGoogleAndGetWebContentInput
->;
-export type SearchGoogleAndGetWebContentOutput = z.infer<
-  typeof SearchGoogleAndGetWebContentOutput
->;
+export type BrowseWebInput = z.infer<typeof BrowseWebInput>;
+export type BrowseWebOutput = z.infer<typeof BrowseWebOutput>;
 
 export interface IExplorer {
   searchGoogle(input: SearchGoogleInput): Promise<SearchGoogleOutput>;
+  searchGoogleImages(
+    input: SearchGoogleImagesInput,
+  ): Promise<SearchGoogleOutput>;
   getWebContent(input: GetWebContentInput): Promise<GetWebContentOutput>;
 }

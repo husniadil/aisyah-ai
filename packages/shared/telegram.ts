@@ -27,14 +27,3 @@ export const getFile = (config: AuthInput) => async (fileId?: string) => {
     return undefined;
   }
 };
-
-export const isContainingAudioLink = (text?: string): boolean => {
-  const audioLinkRegex = /\/\/\S+\.(mp3|wav|ogg)/g;
-  return !!text && audioLinkRegex.test(text);
-};
-
-export const extractAudioLink = (text?: string): string | undefined => {
-  const audioLinkRegex = /\/\/\S+\.(mp3|wav|ogg)/g;
-  const match = text?.match(audioLinkRegex);
-  return match ? match[0] : undefined;
-};

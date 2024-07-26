@@ -86,7 +86,7 @@ app.mount(
       const telegraph = new Telegraph(ctx, env, await getSettings(env, chatId));
       return await telegraph.start(request);
     } catch (error) {
-      console.log("error:", JSON.parse(error as string));
+      console.log("error:", error);
       return new Response();
     }
   },

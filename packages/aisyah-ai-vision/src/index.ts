@@ -15,7 +15,7 @@ app.post("/describe", async (c) => {
     const response = await vision.describe(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error: `${error}` }, { status: 400 });
   }
 });

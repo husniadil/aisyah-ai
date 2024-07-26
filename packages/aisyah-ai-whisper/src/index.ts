@@ -15,7 +15,7 @@ app.post("/listen", async (c) => {
     const response = await whisper.listen(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error }, { status: 400 });
   }
 });

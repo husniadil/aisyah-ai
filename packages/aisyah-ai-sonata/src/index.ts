@@ -18,7 +18,7 @@ app.post("/speak", async (c) => {
     const response = await sonata.speak(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error: `${error}` }, { status: 400 });
   }
 });
@@ -38,7 +38,7 @@ app.post("/settings/:key", async (c) => {
     await c.env.SETTINGS.put(key, JSON.stringify(parsedSettings));
     return c.json({ message: "Settings saved" });
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error }, { status: 400 });
   }
 });

@@ -143,7 +143,7 @@ export class Telegraph {
       });
       await this.reply(ctx, output);
     } catch (error) {
-      console.error(error);
+      console.log("Telegraph ~ handleCommand ~ error:", command, error);
       await ctx.reply(`${(error as Error).message}`);
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");
@@ -216,17 +216,18 @@ export class Telegraph {
         await ctx.editMessageText(message, { reply_markup: keyboard });
         await ctx.answerCallbackQuery({ text: "Settings updated" });
       } catch (error) {
-        console.error(error);
+        console.log(
+          "Telegraph ~ this.bot.on:callback_query:data ~ error:",
+          error,
+        );
         await ctx.answerCallbackQuery({ text: "Failed to update settings" });
       }
     });
   }
 
   private async handleMessage(ctx: Context): Promise<void> {
-    console.log(ctx.message);
+    console.log("Telegraph ~ handleMessage ~ ctx.message:", ctx.message);
     try {
-      console.log("Handling message:", ctx.message);
-
       await this.handleRateLimit(ctx);
       await this.lock.acquire(ctx.message?.chat?.id.toString() ?? "");
 
@@ -272,7 +273,7 @@ export class Telegraph {
         }),
       });
     } catch (error) {
-      console.error(error);
+      console.log("Telegraph ~ handleMessage ~ error:", error);
       await ctx.reply(`${(error as Error).message}`);
     } finally {
       await this.lock.release(ctx.message?.from?.id.toString() ?? "");

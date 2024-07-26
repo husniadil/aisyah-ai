@@ -18,7 +18,7 @@ app.post("/search-google", async (c) => {
     const response = await explorer.searchGoogle(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error: `${error}` }, { status: 400 });
   }
 });
@@ -30,7 +30,7 @@ app.post("/get-web-content", async (c) => {
     const response = await explorer.getWebContent(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error: `${error}` }, { status: 400 });
   }
 });

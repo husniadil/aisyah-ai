@@ -15,7 +15,7 @@ app.post("/predict", async (c) => {
     const response = await storm.predict(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error: `${error}` }, { status: 400 });
   }
 });

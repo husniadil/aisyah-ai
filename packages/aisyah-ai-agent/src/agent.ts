@@ -25,7 +25,11 @@ import {
   AgentPersona,
   type AgentSettings,
 } from "@packages/shared/types/settings";
-import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
+import {
+  AgentExecutor,
+  createReactAgent,
+  createToolCallingAgent,
+} from "langchain/agents";
 import type { StructuredTool } from "langchain/tools";
 
 interface Env {
@@ -108,6 +112,18 @@ export class Agent implements IAgent {
     return new AgentExecutor({ agent, tools: this.tools });
   }
 
+  private async createReactAgent(): Promise<AgentExecutor> {
+    const agent = await createReactAgent({
+      llm: this.llm,
+      prompt: this.createChatPromptTemplate(),
+      tools: this.tools,
+    });
+    return new AgentExecutor({
+      agent,
+      tools: this.tools,
+    });
+  }
+
   private async createChatHistoryMessages(
     chatHistory: ChatHistoryList,
   ): Promise<BaseMessage[]> {
@@ -139,14 +155,14 @@ export class Agent implements IAgent {
   async chat(input: ChatInput): Promise<ChatOutput> {
     const { chatId, messageId, senderId, senderName, message, chatHistory } =
       input;
-    console.log("Chatting with the following input:", {
+    console.log(
+      "Agent ~ chat ~ input:",
       chatId,
       messageId,
       senderId,
       senderName,
       message,
-      chatHistory: "<redacted>",
-    });
+    );
 
     const userInput: BaseMessagePromptTemplateLike = [
       "human",

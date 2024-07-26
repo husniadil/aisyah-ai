@@ -19,20 +19,19 @@ export class Storm implements IStorm {
   }
 
   async predict(input: GetWeatherInput): Promise<GetWeatherOutput> {
-    console.log("Fetching weather data with the following input:", input);
-
+    console.log("Storm ~ predict ~ input:", input);
     const { city, unit } = input;
     const url = this.createUrl(input);
     try {
       const response = await fetchWithTimeout(url);
       if (!response.ok) {
         const message = `Failed to fetch weather data for city: ${city} with unit: ${unit}`;
-        console.error(message);
+        console.log("Storm ~ predict ~ message:", message);
         throw new Error(message);
       }
       return GetWeatherOutput.parse(await response.json());
     } catch (error) {
-      console.error("Failed to fetch weather data:", error);
+      console.log("Storm ~ predict ~ error:", input, error);
       throw error;
     }
   }

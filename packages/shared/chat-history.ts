@@ -36,7 +36,7 @@ export class UpstashRedisChatHistory implements IChatHistory {
       await this.redis.set(fullKey, JSON.stringify(truncatedData));
       return truncatedData;
     } catch (error) {
-      console.warn(`Error appending messages to ${key}:`, error);
+      console.log("UpstashRedisChatHistory ~ error:", key, error);
     }
     return ChatHistoryList.parse(messages);
   }
@@ -46,7 +46,7 @@ export class UpstashRedisChatHistory implements IChatHistory {
     try {
       return (await this.redis.get<ChatHistoryList>(fullKey)) || [];
     } catch (error) {
-      console.warn(`Error getting messages from ${key}:`, error);
+      console.log("UpstashRedisChatHistory ~ get ~ error:", key, error);
       return [];
     }
   }
@@ -56,7 +56,7 @@ export class UpstashRedisChatHistory implements IChatHistory {
     try {
       await this.redis.del(fullKey);
     } catch (error) {
-      console.warn(`Error clearing messages from ${key}:`, error);
+      console.log("UpstashRedisChatHistory ~ clear ~ error:", key, error);
     }
     return [];
   }

@@ -61,7 +61,7 @@ app.post("/webhooks/reminders-api", async (c) => {
     });
     return await sendMessage(authInput)(messageInput);
   } catch (error) {
-    console.error("Failed to handle reminder:", error);
+    console.log("app.post ~ error:", error);
   }
   return c.json("OK\n");
 });
@@ -86,10 +86,7 @@ app.mount(
       const telegraph = new Telegraph(ctx, env, await getSettings(env, chatId));
       return await telegraph.start(request);
     } catch (error) {
-      console.error(
-        "Failed to handle telegram webhook:",
-        JSON.parse(error as string),
-      );
+      console.log("error:", JSON.parse(error as string));
       return new Response();
     }
   },
@@ -122,7 +119,7 @@ app.post("/settings/:key", async (c) => {
 
     return c.json({ message: "Settings saved" });
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error }, { status: 400 });
   }
 });

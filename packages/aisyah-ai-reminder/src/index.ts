@@ -15,7 +15,7 @@ app.post("/remind", async (c) => {
     const response = await reminder.remind(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error }, { status: 400 });
   }
 });

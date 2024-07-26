@@ -21,22 +21,14 @@ export class Vision implements IVision {
   }
 
   async describe(input: DescribeInput): Promise<DescribeOutput> {
-    console.log(
-      "Generating description for image with the following input:",
-      input,
-    );
-
-    const { imageUrl } = input;
+    console.log("Vision ~ describe ~ input:", input);
     try {
-      const response = await this.generateDescription(imageUrl);
+      const response = await this.generateDescription(input.imageUrl);
       return DescribeOutput.parse({
-        data: this.extractDescription(imageUrl, response),
+        data: this.extractDescription(input.imageUrl, response),
       });
     } catch (error) {
-      console.error("Error generating description for image:", {
-        imageUrl: imageUrl,
-        error,
-      });
+      console.log("Vision ~ describe ~ error:", input, error);
       throw error;
     }
   }
@@ -65,7 +57,7 @@ export class Vision implements IVision {
 
     if (!content) {
       const message = `Failed to generate description for image: ${imageUrl}`;
-      console.error(message);
+      console.log("Vision ~ message:", message);
       throw new Error(message);
     }
 

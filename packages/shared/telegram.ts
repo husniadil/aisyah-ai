@@ -23,7 +23,7 @@ export const getFile = (config: AuthInput) => async (fileId?: string) => {
     const response = await fetchWithTimeout(url);
     return (await response.json()) as { result: { file_path: string } };
   } catch (error) {
-    console.error("Failed to get file:", error);
+    console.log("getFile ~ error:", fileId, error);
     return undefined;
   }
 };

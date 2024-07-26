@@ -34,7 +34,7 @@ export class UpstashRedisRateLimit implements IRateLimit {
         return await this.handleExistingKey(fullKey, value);
       }
     } catch (error) {
-      console.warn(`Error checking rate limit for ${key}:`, error);
+      console.log("UpstashRedisRateLimit ~ isRateLimited ~ error:", key, error);
       return false;
     }
     await this.initializeKey(fullKey);

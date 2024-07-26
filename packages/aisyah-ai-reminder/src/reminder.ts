@@ -37,8 +37,8 @@ export class Reminder implements IReminder {
   }
 
   async remind(input: RemindInput): Promise<RemindOutput> {
+    console.log("Reminder ~ remind ~ input:", input);
     const { chatId, reminderPrompt, date, time, timeZone } = input;
-    console.log("Setting reminder with the following input:", reminderPrompt);
     const url = this.createUrl(input);
     try {
       const response = await fetchWithTimeout(url, {
@@ -49,12 +49,12 @@ export class Reminder implements IReminder {
       });
       if (!response.ok) {
         const message = `Error setting reminder: ${response.statusText}`;
-        console.error(message);
+        console.log("Reminder ~ remind ~ message:", message);
         throw new Error(message);
       }
       return RemindOutput.parse(await response.json());
     } catch (error) {
-      console.error("Error setting reminder:", error);
+      console.log("Reminder ~ remind ~ error:", input, error);
       throw error;
     }
   }

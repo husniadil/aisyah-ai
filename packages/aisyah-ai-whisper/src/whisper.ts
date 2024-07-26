@@ -20,22 +20,17 @@ export class Whisper implements IWhisper {
   }
 
   async listen(input: ListenInput): Promise<ListenOutput> {
-    console.log("Transcribing audio from URL with the following input:", input);
-
-    const { audioUrl } = input;
+    console.log("Whisper ~ listen ~ input:", input);
     try {
       const transcription = await this.openAI.audio.transcriptions.create({
-        file: await fetchWithTimeout(audioUrl),
+        file: await fetchWithTimeout(input.audioUrl),
         model: "whisper-1",
       });
       return ListenOutput.parse({
         data: transcription.text,
       });
     } catch (error) {
-      console.error("Error transcribing audio from URL:", {
-        audioUrl,
-        error,
-      });
+      console.log("Whisper ~ listen ~ error:", input, error);
       throw error;
     }
   }

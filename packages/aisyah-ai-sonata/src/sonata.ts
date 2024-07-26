@@ -58,16 +58,13 @@ export class Sonata implements ISonata {
         .upload(path, audio);
 
       if (response.error) {
-        console.error(
-          "Error uploading audio to Supabase storage:",
-          response.error,
-        );
+        console.log("Sonata ~ constructor ~ response.error:", response.error);
         throw new Error(response.error.message);
       }
 
       if (!response.data) {
         const message = `No data returned after uploading audio to Supabase storage for path: ${path}`;
-        console.error(message);
+        console.log("Sonata ~ constructor ~ message:", message);
         throw new Error(message);
       }
 
@@ -85,8 +82,7 @@ export class Sonata implements ISonata {
   }
 
   async speak(input: SpeakInput): Promise<SpeakOutput> {
-    console.log("Generating audio for text with the following input:", input);
-
+    console.log("Sonata ~ speak ~ input:", input);
     const { text, metadata } = input;
     const { chatId, messageId } = metadata;
     try {
@@ -106,7 +102,7 @@ export class Sonata implements ISonata {
         data: await this.getPublicUrl(response.path),
       });
     } catch (error) {
-      console.error("Error generating audio for text with metadata:", {
+      console.log("Error generating audio for text with metadata:", {
         text,
         metadata,
         error,

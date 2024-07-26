@@ -18,7 +18,7 @@ app.post("/chat", async (c) => {
     const response = await agent.chat(input);
     return c.json(response);
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error }, { status: 400 });
   }
 });
@@ -33,12 +33,12 @@ app.post("/settings/:key", async (c) => {
   try {
     const key = c.req.param("key");
     const settings = await c.req.json();
-    console.log(settings);
+    console.log("app.post ~ key ~ settings:", key, settings);
     const parsedSettings = AgentSettings.parse(settings);
     await c.env.SETTINGS.put(key, JSON.stringify(parsedSettings));
     return c.json({ message: "Settings saved" });
   } catch (error) {
-    console.error(error);
+    console.log("app.post ~ error:", error);
     return c.json({ error }, { status: 400 });
   }
 });

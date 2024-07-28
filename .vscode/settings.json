@@ -3,8 +3,6 @@
     "**/.yarn": true,
     "**/.pnp.*": true
   },
-  "typescript.tsdk": "./.yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
   "editor.formatOnSave": true,
   "prettier.enable": false,
   "typescript.suggest.autoImports": true,

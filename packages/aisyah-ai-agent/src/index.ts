@@ -23,6 +23,36 @@ app.post("/chat", async (c) => {
   }
 });
 
+app.post("/chat/stream", async (c) => {
+  const input = ChatInput.parse(await c.req.json());
+  const settings = (await c.env.SETTINGS.get(input.chatId)) || "{}";
+  const parsedSettings = AgentSettings.parse(JSON.parse(settings));
+  const agent = new Agent(c.env, parsedSettings, input.senderId);
+  const streamData: string = (await agent.chat(input)).data;
+  const chunkSize = 2;
+  const delayMs = 10;
+
+  const encoder = new TextEncoder();
+  const readableStream = new ReadableStream({
+    start(controller) {
+      const chunks =
+        streamData.match(new RegExp(`.{1,${chunkSize}}`, "g")) || [];
+      chunks.forEach((chunk, index) => {
+        setTimeout(() => {
+          controller.enqueue(encoder.encode(chunk));
+          if (index === chunks.length - 1) {
+            controller.close();
+          }
+        }, index * delayMs);
+      });
+    },
+  });
+
+  return new Response(readableStream, {
+    headers: { "Content-Type": "text/plain" },
+  });
+});
+
 app.get("/settings/:key", async (c) => {
   const key = c.req.param("key");
   const settings = await c.env.SETTINGS.get(key);

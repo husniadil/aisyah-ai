@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export enum AgentPersona {
   "Aisyah Default" = "aisyah-default",
+  "Aisyah Jawir" = "aisyah-jawir",
   "Personal Assistant" = "personal-assistant",
 }
 

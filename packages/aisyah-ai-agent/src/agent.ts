@@ -39,6 +39,7 @@ interface Env {
   AGENT_LLM_PRESENCE_PENALTY: 0;
 
   AGENT_PERSONA_AISYAH_DEFAULT: string;
+  AGENT_PERSONA_AISYAH_JAWIR: string;
   AGENT_PERSONA_PERSONAL_ASSISTANT: string;
 
   AISYAH_AI_VISION: Fetcher;
@@ -71,6 +72,7 @@ export class Agent implements IAgent {
     });
     this.personaMap = {
       "aisyah-default": env.AGENT_PERSONA_AISYAH_DEFAULT,
+      "aisyah-jawir": env.AGENT_PERSONA_AISYAH_JAWIR,
       "personal-assistant": env.AGENT_PERSONA_PERSONAL_ASSISTANT,
     };
     this.persona = settings.persona || AgentPersona["Aisyah Default"];

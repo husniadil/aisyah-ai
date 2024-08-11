@@ -2,6 +2,17 @@
   "name": "aisyah-ai-vision",
   "version": "0.0.1",
   "private": true,
+  "author": {
+    "name": "Husni Adil Makmur",
+    "email": "husni.adil@gmail.com",
+    "url": "https://github.com/husniadil"
+  },
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/husniadil/aisyah-ai",
+    "type": "git"
+  },
+  "homepage": "https://t.me/aisyah_ai_bot",
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",

@@ -6,6 +6,17 @@
   "workspaces": [
     "packages/**/*"
   ],
+  "author": {
+    "name": "Husni Adil Makmur",
+    "email": "husni.adil@gmail.com",
+    "url": "https://github.com/husniadil"
+  },
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/husniadil/aisyah-ai",
+    "type": "git"
+  },
+  "homepage": "https://t.me/aisyah_ai_bot",
   "scripts": {
     "w": "node ./workspace-foreach.js",
     "deploy": "yarn workspaces foreach --all run deploy",

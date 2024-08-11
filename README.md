@@ -41,14 +41,14 @@ Aisyah AI is a multi-functional project that provides various tools and capabili
 
 ## Screenshots
 
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/start-1.png?raw=true" width="220" alt="start-1" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/start-1.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/start-2.png?raw=true" width="220" alt="start-2" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/start-2.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-llm-model.png?raw=true" width="220" alt="settings-llm-model" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-llm-model.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-persona.png?raw=true" width="220" alt="settings-persona" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-persona.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-voice.png?raw=true" width="220" alt="settings-voice" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-voice.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-chat-history.png?raw=true" width="220" alt="settings-chat-history" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-chat-history.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/chat.png?raw=true" width="220" alt="chat" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/chat.png)
-[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/group-chat.png?raw=true" width="220" alt="group-chat" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/group-chat.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/start-1.png?raw=true" width="200" alt="start-1" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/start-1.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/start-2.png?raw=true" width="200" alt="start-2" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/start-2.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-llm-model.png?raw=true" width="200" alt="settings-llm-model" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-llm-model.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-persona.png?raw=true" width="200" alt="settings-persona" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-persona.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-voice.png?raw=true" width="200" alt="settings-voice" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-voice.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-chat-history.png?raw=true" width="200" alt="settings-chat-history" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-chat-history.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/chat.png?raw=true" width="200" alt="chat" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/chat.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/group-chat.png?raw=true" width="200" alt="group-chat" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/group-chat.png)
 
 ## Usage
 

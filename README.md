@@ -39,6 +39,17 @@ Aisyah AI is a multi-functional project that provides various tools and capabili
   - **Third-party Services**: It connects with third-party services to enhance its capabilities, such as language translation, sentiment analysis, and more.
   - **Continuous Improvement**: Regular updates and new API integrations keep Aisyah AI up-to-date with the latest technological advancements.
 
+## Screenshots
+
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/start-1.png?raw=true" width="220" alt="start-1" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/start-1.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/start-2.png?raw=true" width="220" alt="start-2" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/start-2.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-llm-model.png?raw=true" width="220" alt="settings-llm-model" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-llm-model.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-persona.png?raw=true" width="220" alt="settings-persona" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-persona.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-voice.png?raw=true" width="220" alt="settings-voice" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-voice.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-chat-history.png?raw=true" width="220" alt="settings-chat-history" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/settings-chat-history.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/chat.png?raw=true" width="220" alt="chat" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/chat.png)
+[<img src="https://github.com/husniadil/aisyah-ai/blob/main/assets/group-chat.png?raw=true" width="220" alt="group-chat" />](https://github.com/husniadil/aisyah-ai/blob/main/assets/group-chat.png)
+
 ## Usage
 
 **Personal Use Only**: Please note that Aisyah AI is a personal project and not intended for production use. It is designed for personal experimentation and learning purposes.

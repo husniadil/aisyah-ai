@@ -1,5 +1,7 @@
 # 🌟 Aisyah AI 🌟
 
+![Avatar](https://github.com/husniadil/aisyah-ai/blob/main/assets/avatar.jpg?raw=true)
+
 Aisyah AI is a multi-functional project that provides various tools and capabilities for interacting with users, setting reminders, processing images, and making web requests. It leverages Cloudflare Workers for serverless functions, utilizing APIs from OpenAI for language processing and image recognition, as well as real-time weather data and Telegram for message handling.
 
 ## Features

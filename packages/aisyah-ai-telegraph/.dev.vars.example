@@ -1,3 +1,5 @@
+# fully qualified sub domain, e.g. someone.workers.dev
+CLOUDFLARE_SUBDOMAIN="xxxx"
 TELEGRAM_BOT_TOKEN=11111111:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 UPSTASH_REDIS_REST_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 UPSTASH_REDIS_REST_URL=https://xxxxxxxxxxxxxxxxxx.upstash.io

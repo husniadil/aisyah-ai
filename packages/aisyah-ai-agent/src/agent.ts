@@ -42,6 +42,7 @@ interface Env {
   AGENT_PERSONA_AISYAH_JAWIR: string;
   AGENT_PERSONA_PERSONAL_ASSISTANT: string;
 
+  CLOUDFLARE_SUBDOMAIN: string;
   AISYAH_AI_VISION: Fetcher;
   AISYAH_AI_SONATA: Fetcher;
   AISYAH_AI_WHISPER: Fetcher;
@@ -81,12 +82,30 @@ export class Agent implements IAgent {
       new Calculator(),
       this.currentTimeTool,
       new WikipediaQueryRun({ topKResults: 2, maxDocContentLength: 1000 }),
-      new VisionTool(env.AISYAH_AI_VISION),
-      new SonataTool(env.AISYAH_AI_SONATA),
-      new WhisperTool(env.AISYAH_AI_WHISPER),
-      new ReminderTool(env.AISYAH_AI_REMINDER),
-      new StormTool(env.AISYAH_AI_STORM),
-      new ExplorerTool(env.AISYAH_AI_EXPLORER),
+      new VisionTool(
+        env.AISYAH_AI_VISION,
+        `https://aisyah-ai-vision.${env.CLOUDFLARE_SUBDOMAIN}`,
+      ),
+      new SonataTool(
+        env.AISYAH_AI_SONATA,
+        `https://aisyah-ai-sonata.${env.CLOUDFLARE_SUBDOMAIN}`,
+      ),
+      new WhisperTool(
+        env.AISYAH_AI_WHISPER,
+        `https://aisyah-ai-whisper.${env.CLOUDFLARE_SUBDOMAIN}`,
+      ),
+      new ReminderTool(
+        env.AISYAH_AI_REMINDER,
+        `https://aisyah-ai-reminder.${env.CLOUDFLARE_SUBDOMAIN}`,
+      ),
+      new StormTool(
+        env.AISYAH_AI_STORM,
+        `https://aisyah-ai-storm.${env.CLOUDFLARE_SUBDOMAIN}`,
+      ),
+      new ExplorerTool(
+        env.AISYAH_AI_EXPLORER,
+        `https://aisyah-ai-explorer.${env.CLOUDFLARE_SUBDOMAIN}`,
+      ),
     );
   }
 

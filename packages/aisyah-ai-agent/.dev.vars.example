@@ -1,3 +1,5 @@
+# fully qualified sub domain, e.g. someone.workers.dev
+CLOUDFLARE_SUBDOMAIN="xxxx"
 LANGCHAIN_API_KEY="xxxx_xx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxx"
 OPENAI_API_KEY=sk-xxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 AGENT_PERSONA_AISYAH_DEFAULT="You are a helpful assistant!"

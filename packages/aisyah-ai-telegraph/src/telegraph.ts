@@ -20,6 +20,7 @@ import {
 import { SettingsManager } from "./settings";
 
 interface Env {
+  CLOUDFLARE_SUBDOMAIN: string;
   AISYAH_AI_AGENT: Fetcher;
   AISYAH_AI_WHISPER: Fetcher;
   AISYAH_AI_SONATA: Fetcher;
@@ -47,9 +48,18 @@ export class Telegraph {
   private settingsManager: SettingsManager;
 
   constructor(ctx: ExecutionContext, env: Env, settings: Settings) {
-    this.agentTool = new AgentTool(env.AISYAH_AI_AGENT);
-    this.whisperTool = new WhisperTool(env.AISYAH_AI_WHISPER);
-    this.sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
+    this.agentTool = new AgentTool(
+      env.AISYAH_AI_AGENT,
+      `https://aisyah-ai-agent.${env.CLOUDFLARE_SUBDOMAIN}`,
+    );
+    this.whisperTool = new WhisperTool(
+      env.AISYAH_AI_WHISPER,
+      `https://aisyah-ai-whisper.${env.CLOUDFLARE_SUBDOMAIN}`,
+    );
+    this.sonataTool = new SonataTool(
+      env.AISYAH_AI_SONATA,
+      `https://aisyah-ai-sonata.${env.CLOUDFLARE_SUBDOMAIN}`,
+    );
     this.currentTimeTool = new CurrentTimeTool();
 
     this.bot = new Bot(env.TELEGRAM_BOT_TOKEN, {

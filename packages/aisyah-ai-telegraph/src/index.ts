@@ -13,9 +13,15 @@ const getSettings = async (env: Env, chatId: string) => {
   const telegraphSettings = TelegraphSettings.parse(
     JSON.parse((await env.SETTINGS.get(chatId)) || "{}"),
   );
-  const agentTool = new AgentTool(env.AISYAH_AI_AGENT);
+  const agentTool = new AgentTool(
+    env.AISYAH_AI_AGENT,
+    `https://aisyah-ai-agent.${env.CLOUDFLARE_SUBDOMAIN}`,
+  );
   const agentSettings = await agentTool.getSettings(chatId);
-  const sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
+  const sonataTool = new SonataTool(
+    env.AISYAH_AI_SONATA,
+    `https://aisyah-ai-sonata.${env.CLOUDFLARE_SUBDOMAIN}`,
+  );
   const sonataSettings = await sonataTool.getSettings(chatId);
   return {
     telegraph: telegraphSettings,
@@ -108,12 +114,18 @@ app.post("/settings/:key", async (c) => {
     }
 
     if (settings.agent) {
-      const agentTool = new AgentTool(c.env.AISYAH_AI_AGENT);
+      const agentTool = new AgentTool(
+        c.env.AISYAH_AI_AGENT,
+        `https://aisyah-ai-agent.${c.env.CLOUDFLARE_SUBDOMAIN}`,
+      );
       await agentTool.setSettings(key, settings.agent);
     }
 
     if (settings.sonata) {
-      const sonataTool = new SonataTool(c.env.AISYAH_AI_SONATA);
+      const sonataTool = new SonataTool(
+        c.env.AISYAH_AI_SONATA,
+        `https://aisyah-ai-sonata.${c.env.CLOUDFLARE_SUBDOMAIN}`,
+      );
       await sonataTool.setSettings(key, settings.sonata);
     }
 
@@ -127,9 +139,15 @@ app.post("/settings/:key", async (c) => {
 app.delete("/settings/:key", async (c) => {
   const key = c.req.param("key");
   await c.env.SETTINGS.delete(key);
-  const agentTool = new AgentTool(c.env.AISYAH_AI_AGENT);
+  const agentTool = new AgentTool(
+    c.env.AISYAH_AI_AGENT,
+    `https://aisyah-ai-agent.${c.env.CLOUDFLARE_SUBDOMAIN}`,
+  );
   await agentTool.clearSettings(key);
-  const sonataTool = new SonataTool(c.env.AISYAH_AI_SONATA);
+  const sonataTool = new SonataTool(
+    c.env.AISYAH_AI_SONATA,
+    `https://aisyah-ai-sonata.${c.env.CLOUDFLARE_SUBDOMAIN}`,
+  );
   await sonataTool.clearSettings(key);
   return c.json({ message: "Settings deleted" });
 });

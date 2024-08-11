@@ -4,6 +4,7 @@ import { Settings } from "@packages/shared/types/settings";
 import { type ZodAny, z } from "zod";
 
 interface Env {
+  CLOUDFLARE_SUBDOMAIN: string;
   AISYAH_AI_AGENT: Fetcher;
   AISYAH_AI_SONATA: Fetcher;
   SETTINGS: KVNamespace<string>;
@@ -25,8 +26,14 @@ export class SettingsManager {
     this.currentSettings = currentSettings;
 
     this.SETTINGS = env.SETTINGS;
-    this.agentTool = new AgentTool(env.AISYAH_AI_AGENT);
-    this.sonataTool = new SonataTool(env.AISYAH_AI_SONATA);
+    this.agentTool = new AgentTool(
+      env.AISYAH_AI_AGENT,
+      `https://aisyah-ai-agent.${env.CLOUDFLARE_SUBDOMAIN}`,
+    );
+    this.sonataTool = new SonataTool(
+      env.AISYAH_AI_SONATA,
+      `https://aisyah-ai-sonata.${env.CLOUDFLARE_SUBDOMAIN}`,
+    );
   }
 
   getCurrentSettings = () => this.currentSettings;

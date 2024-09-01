@@ -129,6 +129,7 @@ export const SonataSettings = z.object({
       z.literal("Matilda"),
       z.literal("Sarah"),
       z.literal("Will"),
+      z.literal("Meraki female Indonesian voice"),
     ])
     .optional()
     .describe("The voice"),

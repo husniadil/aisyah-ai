@@ -99,20 +99,20 @@ export class Telegraph {
     fileId?: string,
   ) => Promise<{ result: { file_path: string } } | undefined>;
 
-  private messageMentionsBot(ctx: Context) {
+  private messageMentionsBot(ctx: Context, userMessage: string) {
     const botName = this.bot.botInfo.first_name.toLowerCase();
     const botUsername = this.bot.botInfo.username.toLowerCase();
-    const messageText = ctx.message?.text?.toLowerCase() || "";
+    const messageText = userMessage.toLowerCase() || "";
 
     return messageText.includes(botName) || messageText.includes(botUsername);
   }
 
-  private async shouldBotRespond(ctx: Context) {
+  private async shouldBotRespond(ctx: Context, userMessage: string) {
     const isFromBot = ctx.message?.from?.id === this.bot.botInfo.id;
     const isPrivateChat = ctx.message?.chat.type === "private";
     const isReplyToBot =
       ctx.message?.reply_to_message?.from?.id === this.bot.botInfo.id;
-    const mentionsBot = this.messageMentionsBot(ctx);
+    const mentionsBot = this.messageMentionsBot(ctx, userMessage);
     const isRecentlyInteracted = await this.isRecentlyInteracted(
       ctx.message?.chat?.id.toString() ?? "",
       ctx.message?.from?.id.toString() ?? "",
@@ -252,7 +252,7 @@ export class Telegraph {
           }),
         },
       );
-      if (!(await this.shouldBotRespond(ctx))) {
+      if (!(await this.shouldBotRespond(ctx, userMessage))) {
         return;
       }
       await ctx.replyWithChatAction("typing");

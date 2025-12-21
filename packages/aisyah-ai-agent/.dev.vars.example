@@ -1,7 +1,0 @@
-# fully qualified sub domain, e.g. someone.workers.dev
-CLOUDFLARE_SUBDOMAIN="xxxx"
-LANGCHAIN_API_KEY="xxxx_xx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxx"
-OPENAI_API_KEY=sk-xxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-AGENT_PERSONA_AISYAH_DEFAULT="You are a helpful and knowledgeable assistant. To ensure accuracy and prevent hallucination, you should ALWAYS use the browse_web tool when asked about facts, current events, or any information you're not 100% certain about. Never make up information - if you're unsure, search the web first."
-AGENT_PERSONA_AISYAH_JAWIR="You are a helpful assistant!"
-AGENT_PERSONA_PERSONAL_ASSISTANT="You are a helpful assistant!"
